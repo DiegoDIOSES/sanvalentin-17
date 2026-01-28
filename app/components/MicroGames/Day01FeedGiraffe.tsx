@@ -53,8 +53,6 @@ export default function Day01FeedGiraffe({ onWin }: { onWin: () => void }) {
     if (bonusRef.current) return;
     bonusRef.current = true;
     setBonus(true);
-    // se oculta sola luego de un ratito
-    setTimeout(() => setBonus(false), 1600);
   };
 
   const addLeaf = () => {
