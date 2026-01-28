@@ -8,6 +8,9 @@ import type { DayItem } from "../data/days";
 import { playSound, stopSound } from "../lib/sound";
 import { DragGame, HoldGame, TapGame } from "./MicroGames";
 
+import Day01Giraffe from "./DayScenes/Day01Giraffe";
+import Day01FeedGiraffe from "./MicroGames/Day01FeedGiraffe";
+
 export default function DayModal({
   item,
   onClose,
@@ -99,7 +102,19 @@ export default function DayModal({
         </div>
 
         <div className="p-6 md:p-8">
-          {!isFinal ? (
+          {/* ✅ Día 1 personalizado (Jirafa) */}
+          {item.day === 1 ? (
+            <div className="space-y-4">
+              <Day01Giraffe />
+              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+                <div className="text-sm font-semibold">Mini juego</div>
+                <p className="mt-1 text-xs text-zinc-600">
+                  Alimenta a la jirafa con hojitas 🌿 (y gana confetti 😄)
+                </p>
+                <Day01FeedGiraffe onWin={onWin} />
+              </div>
+            </div>
+          ) : !isFinal ? (
             <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
               <div className="text-sm font-semibold">Mini juego</div>
               <p className="mt-1 text-xs text-zinc-600">
