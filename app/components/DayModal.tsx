@@ -1,8 +1,12 @@
-// app/components/DayModal.tsx
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import confetti from "canvas-confetti";
+
 import type { DayItem } from "../data/days";
+import { playSound, stopSound } from "../lib/sound";
+import { DragGame, HoldGame, TapGame } from "./MicroGames";
 
 export default function DayModal({
   item,
@@ -13,13 +17,38 @@ export default function DayModal({
   onClose: () => void;
   muted: boolean;
 }) {
+  const [wins, setWins] = useState(0);
+  const isFinal = item.day === 17;
+
+  useEffect(() => {
+    // Sonido del día al abrir
+    playSound(item.sound, muted, 0.85);
+    return () => stopSound();
+  }, [item.sound, muted]);
+
+  const onWin = () => {
+    setWins((w) => w + 1);
+    confetti({ particleCount: 70, spread: 65, origin: { y: 0.35 } });
+    playSound("/sounds/unlock.mp3", muted, 0.8);
+  };
+
+  const Game = useMemo(() => {
+    if (item.microGame === "tap") return <TapGame onWin={onWin} />;
+    if (item.microGame === "hold") return <HoldGame onWin={onWin} />;
+    return <DragGame onWin={onWin} />;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item.microGame, muted]);
+
   return (
     <motion.div
       className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/30 p-3 md:p-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      onMouseDown={onClose}
+      onMouseDown={() => {
+        playSound("/sounds/pop.mp3", muted, 0.6);
+        onClose();
+      }}
     >
       <motion.div
         onMouseDown={(e) => e.stopPropagation()}
@@ -43,9 +72,16 @@ export default function DayModal({
               <p className="mt-2 text-sm text-zinc-700 max-w-xl">
                 {item.description}
               </p>
+              <div className="mt-3 text-xs text-zinc-700">
+                Victorias: <span className="font-semibold">{wins}</span>
+              </div>
             </div>
+
             <button
-              onClick={onClose}
+              onClick={() => {
+                playSound("/sounds/pop.mp3", muted, 0.6);
+                onClose();
+              }}
               className="rounded-2xl bg-white/70 backdrop-blur px-3 py-2 text-sm"
             >
               Cerrar ✕
@@ -63,15 +99,51 @@ export default function DayModal({
         </div>
 
         <div className="p-6 md:p-8">
-          <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
-            <div className="text-sm font-semibold">
-              Modo premium (próximo paso)
+          {!isFinal ? (
+            <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+              <div className="text-sm font-semibold">Mini juego</div>
+              <p className="mt-1 text-xs text-zinc-600">
+                Cada día se siente distinto 😉
+              </p>
+              {Game}
             </div>
-            <p className="mt-1 text-xs text-zinc-600">
-              Aquí conectaremos: sonido por día, microjuego y animación
-              especial. (Muted: {muted ? "Sí" : "No"})
-            </p>
-          </div>
+          ) : (
+            <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-5">
+              <div className="text-sm font-semibold">El sobre final 💌</div>
+              <p className="mt-2 text-sm text-zinc-700 leading-relaxed">
+                “Esto es solo una de las cosas que te gustan.
+                <br />
+                Pero compartirlas contigo… empieza a gustarme más.”
+              </p>
+
+              <div className="mt-4 flex flex-col sm:flex-row gap-2">
+                <button
+                  onClick={() => {
+                    confetti({
+                      particleCount: 120,
+                      spread: 80,
+                      origin: { y: 0.35 },
+                    });
+                    playSound("/sounds/secret.mp3", muted, 0.8);
+                  }}
+                  className="rounded-2xl bg-zinc-900 text-white px-4 py-3 text-sm font-semibold"
+                >
+                  Sí, conversemos ✨
+                </button>
+
+                <button
+                  onClick={() => playSound("/sounds/pop.mp3", muted, 0.7)}
+                  className="rounded-2xl bg-white border border-zinc-200 px-4 py-3 text-sm font-semibold"
+                >
+                  Dame una pista 😄
+                </button>
+              </div>
+
+              <div className="mt-4 text-xs text-zinc-600">
+                (Bonus secreto: luego lo hacemos “cafetería cerámica” ☕🎨)
+              </div>
+            </div>
+          )}
         </div>
       </motion.div>
     </motion.div>
