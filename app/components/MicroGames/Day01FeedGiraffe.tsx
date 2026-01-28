@@ -109,7 +109,7 @@ export default function Day01FeedGiraffe({ onWin }: { onWin: () => void }) {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/images/leaf-button.png"
+              src="/images/hoja.png"
               alt="Hoja"
               draggable={false}
               className={`
