@@ -87,10 +87,6 @@ export default function Page() {
         </div>
       </main>
 
-      <footer className="pb-10 text-center text-xs text-zinc-600 relative z-10">
-        Hecho con 💗 — pastel, limpio, divertido y con sorpresa.
-      </footer>
-
       <AnimatePresence>
         {selected && (
           <DayModal
