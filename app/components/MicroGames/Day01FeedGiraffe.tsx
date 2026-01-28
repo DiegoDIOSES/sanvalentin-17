@@ -127,13 +127,19 @@ export default function Day01FeedGiraffe({ onWin }: { onWin: () => void }) {
         <AnimatePresence>
           {bonus && (
             <motion.div
-              className="fixed bottom-6 right-6 z-[9999] text-6xl pointer-events-none"
-              initial={{ x: 160, y: 160, rotate: 12, opacity: 0 }}
-              animate={{ x: 0, y: 0, rotate: 0, opacity: 1 }}
-              exit={{ x: 180, y: 180, rotate: 10, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 180, damping: 16 }}
+              className="fixed bottom-6 right-6 z-[9999] pointer-events-none"
+              initial={{ x: 220, y: 220, rotate: 10, opacity: 0, scale: 0.9 }}
+              animate={{ x: 0, y: 0, rotate: 0, opacity: 1, scale: 1 }}
+              exit={{ x: 240, y: 240, rotate: 8, opacity: 0, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 170, damping: 16 }}
             >
-              🦒
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/images/jirafa-removebg-preview.png"
+                alt="Giraffe bonus"
+                className="h-24 w-24 md:h-32 md:w-32 object-contain drop-shadow-2xl"
+                draggable={false}
+              />
             </motion.div>
           )}
         </AnimatePresence>
