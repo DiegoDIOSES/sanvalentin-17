@@ -50,35 +50,6 @@ export default function Day01Giraffe() {
           </div>
         </div>
       </div>
-
-      {/* “Cuello” animado asomándose */}
-      <div className="relative mt-4 h-20 overflow-hidden rounded-2xl border border-zinc-200 bg-gradient-to-br from-amber-50 to-rose-50">
-        <motion.div
-          className="absolute -bottom-10 left-6 h-40 w-10 rounded-full border border-amber-200 bg-amber-100"
-          animate={{ y: [18, 0, 18] }}
-          transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
-        />
-        {/* Manchitas */}
-        <motion.div
-          className="absolute bottom-3 left-7 h-3 w-3 rounded-full bg-amber-300"
-          animate={{ opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 1.6, repeat: Infinity }}
-        />
-        <motion.div
-          className="absolute bottom-8 left-10 h-4 w-4 rounded-full bg-amber-300"
-          animate={{ opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 1.9, repeat: Infinity }}
-        />
-        <motion.div
-          className="absolute bottom-12 left-7 h-2.5 w-2.5 rounded-full bg-amber-300"
-          animate={{ opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 2.2, repeat: Infinity }}
-        />
-
-        <div className="absolute right-4 top-4 text-xs text-zinc-600">
-          (mira cómo asoma 👀)
-        </div>
-      </div>
     </div>
   );
 }
