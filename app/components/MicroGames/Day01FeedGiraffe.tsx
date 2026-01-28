@@ -83,7 +83,7 @@ export default function Day01FeedGiraffe({ onWin }: { onWin: () => void }) {
           Hojas: <span className="font-semibold text-zinc-900">{leaves}</span> /{" "}
           {GOAL}
           <span className="ml-2 text-[11px] text-zinc-500">
-            (bonus en {BONUS})
+            (Sorpresa en {BONUS})
           </span>
         </span>
         <span className="font-mono">
@@ -101,12 +101,27 @@ export default function Day01FeedGiraffe({ onWin }: { onWin: () => void }) {
         </div>
 
         {/* Botón principal */}
-        <div className="mt-4 flex items-center gap-3">
+        <div className="mt-4 flex items-center gap-4">
           <button
             onClick={() => (active ? addLeaf() : startGame())}
-            className="rounded-2xl bg-emerald-600 text-white px-4 py-3 text-sm font-semibold"
+            aria-label={active ? "Dar hoja" : "Empezar juego"}
+            className="relative focus:outline-none"
           >
-            {active ? "🌿 +1" : "Empezar 🌿"}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/leaf-button.png"
+              alt="Hoja"
+              draggable={false}
+              className={`
+                h-14 w-14 md:h-16 md:w-16
+                object-contain
+                transition-transform duration-150
+                ${active ? "hover:scale-110 active:scale-95" : "hover:scale-105 active:scale-95"}
+                `}
+            />
+
+            {/* feedback visual sutil */}
+            <span className="absolute inset-0 rounded-full ring-emerald-300/40 hover:ring-4 transition" />
           </button>
 
           {/* Estado elegante (sin “ñom”) */}
