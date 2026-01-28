@@ -55,14 +55,14 @@ export default function DayModal({
     >
       <motion.div
         onMouseDown={(e) => e.stopPropagation()}
-        className="w-full max-w-2xl overflow-hidden rounded-[26px] bg-white shadow-soft"
+        className="w-full max-w-2xl overflow-hidden rounded-[26px] bg-white shadow-soft max-h-[85vh] md:max-h-[80vh] flex flex-col"
         initial={{ y: 40, scale: 0.98, opacity: 0 }}
         animate={{ y: 0, scale: 1, opacity: 1 }}
         exit={{ y: 30, scale: 0.98, opacity: 0 }}
         transition={{ type: "spring", stiffness: 260, damping: 26 }}
       >
         <div
-          className={`relative p-6 md:p-8 bg-gradient-to-br ${item.accentGradient}`}
+          className={`relative p-5 md:p-6 bg-gradient-to-br ${item.accentGradient}`}
         >
           <div className="relative flex items-start justify-between gap-4">
             <div>
@@ -92,7 +92,7 @@ export default function DayModal({
           </div>
 
           <motion.div
-            className="mt-6 text-6xl md:text-7xl"
+            className="mt-4 text-5xl md:text-6xl"
             initial={{ scale: 0.8, rotate: -6, opacity: 0 }}
             animate={{ scale: 1, rotate: 0, opacity: 1 }}
             transition={{ type: "spring", stiffness: 220, damping: 14 }}
@@ -101,7 +101,7 @@ export default function DayModal({
           </motion.div>
         </div>
 
-        <div className="p-6 md:p-8">
+        <div className="p-5 md:p-7 overflow-y-auto">
           {/* ✅ Día 1 personalizado (Jirafa) */}
           {item.day === 1 ? (
             <div className="space-y-4">
