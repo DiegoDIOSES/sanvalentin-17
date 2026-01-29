@@ -48,12 +48,11 @@ export const DAYS: DayItem[] = [
   {
     day: 3,
     title: "Color vino",
-    description: "Elegancia que no necesita explicación.",
+    description: "Elegante, suave, profundo. Hoy encontramos el tono exacto.",
     emoji: "🍷",
-    image: "/images/day03-vino.webp",
-    sound: "/sounds/day03.mp3",
-    accentGradient: "from-red-200 to-rose-100",
-    microGame: "drag",
+    accentGradient: "from-[#2a0b18] via-[#6b1b3a] to-[#f0d7df]",
+    sound: "/sounds/day3.mp3",
+    microGame: "hold",
   },
   {
     day: 4,

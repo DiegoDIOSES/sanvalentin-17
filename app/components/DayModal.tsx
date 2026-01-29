@@ -14,6 +14,9 @@ import Day01FeedGiraffe from "./MicroGames/Day01FeedGiraffe";
 import Day02ChocolateCake from "./DayScenes/Day02ChocolateCake";
 import Day02DecorateCake from "./MicroGames/Day02DecorateCake";
 
+import Day03WineTone from "./DayScenes/Day03WineTone";
+import Day03FindWineTone from "./MicroGames/Day03FindWineTone";
+
 export default function DayModal({
   item,
   onClose,
@@ -64,7 +67,9 @@ export default function DayModal({
         transition={{ type: "spring", stiffness: 260, damping: 26 }}
       >
         {/* Header */}
-        <div className={`relative p-5 md:p-6 bg-gradient-to-br ${item.accentGradient}`}>
+        <div
+          className={`relative p-5 md:p-6 bg-gradient-to-br ${item.accentGradient}`}
+        >
           <div className="relative flex items-start justify-between gap-4">
             <div>
               <div className="text-xs font-semibold text-zinc-700">
@@ -113,26 +118,34 @@ export default function DayModal({
                 <p className="mt-1 text-xs text-zinc-600">
                   Alimenta a la jirafa con hojitas 🌿
                 </p>
-                <Day01FeedGiraffe onWin={onWin}/>
+                <Day01FeedGiraffe onWin={onWin} />
               </div>
             </div>
           ) : item.day === 2 ? (
-            /* ✅ Día 2 personalizado (Torta + receta) */
             <div className="space-y-4">
               <Day02ChocolateCake />
-
               <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
                 <div className="text-sm font-semibold">Mini juego</div>
                 <p className="mt-1 text-xs text-zinc-600">
-                  Decora la torta con ingredientes antes de que se acabe el tiempo ✨
+                  Decora la torta con ingredientes antes de que se acabe el
+                  tiempo ✨
                 </p>
-
-                {/* Este componente debe abrir el popup de receta al ganar */}
                 <Day02DecorateCake onWin={onWin} />
               </div>
             </div>
+          ) : item.day === 3 ? (
+            <div className="space-y-4">
+              <Day03WineTone />
+              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+                <div className="text-sm font-semibold">Mini juego</div>
+                <p className="mt-1 text-xs text-zinc-600">
+                  Encuentra el tono vino perfecto. No es rapidez… es sensación
+                  🍷
+                </p>
+                <Day03FindWineTone onWin={onWin} muted={muted} />
+              </div>
+            </div>
           ) : !isFinal ? (
-            /* Resto de días: juego genérico según microGame */
             <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
               <div className="text-sm font-semibold">Mini juego</div>
               <p className="mt-1 text-xs text-zinc-600">
