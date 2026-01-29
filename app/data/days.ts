@@ -86,16 +86,14 @@ export const DAYS: DayItem[] = [
     sound: "/sounds/pop.mp3", // opcional, si luego quieres: puedes no reproducirlo
     microGame: "tap",
   },
-
   {
     day: 7,
     title: "Todas las flores",
-    description: "Porque siempre hay una razón para florecer.",
-    emoji: "💐",
-    image: "/images/day07-flores.webp",
-    sound: "/sounds/day07.mp3",
-    accentGradient: "from-rose-200 to-fuchsia-100",
-    microGame: "tap",
+    description: "Un jardín que florece con 5 acciones distintas.",
+    emoji: "🌸",
+    accentGradient: "from-pink-50 via-rose-50 to-amber-50",
+    sound: "/sounds/wind.mp3", // opcional (este día tiene viento)
+    microGame: "tap", // override en DayModal
   },
   {
     day: 8,

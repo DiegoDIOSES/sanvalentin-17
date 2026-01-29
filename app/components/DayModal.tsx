@@ -26,6 +26,9 @@ import Day05LightCity from "./MicroGames/Day05LightCity";
 import Day06Imanol from "./DayScenes/Day06Imanol";
 import Day06GiggleBubbles from "./MicroGames/Day06GiggleBubbles";
 
+import Day07Flowers from "./DayScenes/Day07Flowers";
+import Day07GardenBloom from "./MicroGames/Day07GardenBloom";
+
 export default function DayModal({
   item,
   onClose,
@@ -193,6 +196,17 @@ export default function DayModal({
                   Sin sonidos: explota burbujitas con calma 😄
                 </p>
                 <Day06GiggleBubbles onWin={onWin} />
+              </div>
+            </div>
+          ) : item.day === 7 ? (
+            <div className="space-y-4">
+              <Day07Flowers />
+              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+                <div className="text-sm font-semibold">Mini juego</div>
+                <p className="mt-1 text-xs text-zinc-600">
+                  5 semillas, 5 gestos distintos. Haz florecer el jardín 🌸
+                </p>
+                <Day07GardenBloom onWin={onWin} muted={muted} />
               </div>
             </div>
           ) : !isFinal ? (
