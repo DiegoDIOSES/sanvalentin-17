@@ -11,6 +11,9 @@ import { DragGame, HoldGame, TapGame } from "./MicroGames";
 import Day01Giraffe from "./DayScenes/Day01Giraffe";
 import Day01FeedGiraffe from "./MicroGames/Day01FeedGiraffe";
 
+import Day02ChocolateCake from "./DayScenes/Day02ChocolateCake";
+import Day02DecorateCake from "./MicroGames/Day02DecorateCake";
+
 export default function DayModal({
   item,
   onClose,
@@ -24,7 +27,6 @@ export default function DayModal({
   const isFinal = item.day === 17;
 
   useEffect(() => {
-    // Sonido del día al abrir
     playSound(item.sound, muted, 0.85);
     return () => stopSound();
   }, [item.sound, muted]);
@@ -61,9 +63,8 @@ export default function DayModal({
         exit={{ y: 30, scale: 0.98, opacity: 0 }}
         transition={{ type: "spring", stiffness: 260, damping: 26 }}
       >
-        <div
-          className={`relative p-5 md:p-6 bg-gradient-to-br ${item.accentGradient}`}
-        >
+        {/* Header */}
+        <div className={`relative p-5 md:p-6 bg-gradient-to-br ${item.accentGradient}`}>
           <div className="relative flex items-start justify-between gap-4">
             <div>
               <div className="text-xs font-semibold text-zinc-700">
@@ -101,6 +102,7 @@ export default function DayModal({
           </motion.div>
         </div>
 
+        {/* Body */}
         <div className="p-5 md:p-7 overflow-y-auto">
           {/* ✅ Día 1 personalizado (Jirafa) */}
           {item.day === 1 ? (
@@ -111,10 +113,26 @@ export default function DayModal({
                 <p className="mt-1 text-xs text-zinc-600">
                   Alimenta a la jirafa con hojitas 🌿
                 </p>
-                <Day01FeedGiraffe onWin={onWin} />
+                <Day01FeedGiraffe onWin={onWin}/>
+              </div>
+            </div>
+          ) : item.day === 2 ? (
+            /* ✅ Día 2 personalizado (Torta + receta) */
+            <div className="space-y-4">
+              <Day02ChocolateCake />
+
+              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+                <div className="text-sm font-semibold">Mini juego</div>
+                <p className="mt-1 text-xs text-zinc-600">
+                  Decora la torta con ingredientes antes de que se acabe el tiempo ✨
+                </p>
+
+                {/* Este componente debe abrir el popup de receta al ganar */}
+                <Day02DecorateCake onWin={onWin} />
               </div>
             </div>
           ) : !isFinal ? (
+            /* Resto de días: juego genérico según microGame */
             <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
               <div className="text-sm font-semibold">Mini juego</div>
               <p className="mt-1 text-xs text-zinc-600">
@@ -123,6 +141,7 @@ export default function DayModal({
               {Game}
             </div>
           ) : (
+            /* Día final */
             <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-5">
               <div className="text-sm font-semibold">El sobre final 💌</div>
               <p className="mt-2 text-sm text-zinc-700 leading-relaxed">
