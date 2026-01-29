@@ -1,26 +1,48 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --paper: 255 255 255;
+  --ink: 20 16 24;
+  --pink: 255 202 213;
+  --rose: 255 154 178;
+  --lav: 208 188 255;
+  --mint: 176 245 220;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+html, body {
+  height: 100%;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  -webkit-tap-highlight-color: transparent;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+::selection {
+  background: rgba(255, 154, 178, 0.35);
+}
+
+.premium-bg {
+  background:
+    radial-gradient(1200px 800px at 20% 10%, rgba(255, 202, 213, 0.65), transparent 60%),
+    radial-gradient(900px 700px at 85% 25%, rgba(208, 188, 255, 0.55), transparent 55%),
+    radial-gradient(900px 700px at 35% 85%, rgba(176, 245, 220, 0.55), transparent 55%),
+    linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.78));
+}
+
+.glass {
+  background: rgba(255,255,255,0.55);
+  border: 1px solid rgba(255,255,255,0.6);
+  box-shadow:
+    0 20px 60px rgba(20, 16, 24, 0.08),
+    inset 0 1px 0 rgba(255,255,255,0.7);
+  backdrop-filter: blur(16px);
+}
+
+.glass-strong {
+  background: rgba(255,255,255,0.72);
+  border: 1px solid rgba(255,255,255,0.7);
+  box-shadow:
+    0 24px 80px rgba(20, 16, 24, 0.10),
+    inset 0 1px 0 rgba(255,255,255,0.75);
+  backdrop-filter: blur(18px);
 }
