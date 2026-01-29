@@ -56,12 +56,11 @@ export const DAYS: DayItem[] = [
   },
   {
     day: 4,
-    title: "TINI",
-    description: "Canciones que se sienten como recuerdos felices.",
-    emoji: "🎤",
-    image: "/images/day04-tini.webp",
-    sound: "/sounds/day04.mp3",
-    accentGradient: "from-fuchsia-200 to-pink-100",
+    title: "Tini",
+    description: "Un rompecabezas de 15 piezas para armar un recuerdo.",
+    emoji: "🎶",
+    accentGradient: "from-pink-50 via-rose-50 to-violet-50",
+    sound: "/sounds/day4.mp3",
     microGame: "tap",
   },
   {

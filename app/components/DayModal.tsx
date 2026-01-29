@@ -17,6 +17,9 @@ import Day02DecorateCake from "./MicroGames/Day02DecorateCake";
 import Day03WineTone from "./DayScenes/Day03WineTone";
 import Day03FindWineTone from "./MicroGames/Day03FindWineTone";
 
+import Day04Tini from "./DayScenes/Day04Tini";
+import Day04TiniPuzzle from "./MicroGames/Day04TiniPuzzle";
+
 export default function DayModal({
   item,
   onClose,
@@ -143,6 +146,21 @@ export default function DayModal({
                   🍷
                 </p>
                 <Day03FindWineTone onWin={onWin} muted={muted} />
+              </div>
+            </div>
+          ) : item.day === 4 ? (
+            <div className="space-y-4">
+              <Day04Tini />
+              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+                <div className="text-sm font-semibold">Mini juego</div>
+                <p className="mt-1 text-xs text-zinc-600">
+                  Rompecabezas de 15 piezas. Cada vez se mezcla distinto 🧩
+                </p>
+                <Day04TiniPuzzle
+                  onWin={onWin}
+                  muted={muted}
+                  imageSrc="/images/tini.jpg"
+                />
               </div>
             </div>
           ) : !isFinal ? (
