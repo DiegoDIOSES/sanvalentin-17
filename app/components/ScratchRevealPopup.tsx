@@ -185,7 +185,7 @@ export default function ScratchRevealPopup({
                 {title}
               </div>
               <div className="mt-2 text-xs text-zinc-600">
-                Limpia el cuadro con tu dedo (o mouse) ✨
+                Limpia el cuadro con tu dedo ✨
               </div>
             </div>
 
@@ -222,10 +222,6 @@ export default function ScratchRevealPopup({
                 >
                   Cerrar ✨
                 </button>
-              </div>
-
-              <div className="mt-3 text-[11px] text-zinc-500">
-                Tip: si no se revela, limpia un poco más la zona central.
               </div>
             </div>
           </motion.div>
