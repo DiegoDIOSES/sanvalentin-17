@@ -207,7 +207,7 @@ export default function Day05LightCity({
               }}
               className="mt-3 w-full rounded-2xl bg-white text-zinc-900 px-4 py-3 text-sm font-semibold"
             >
-              Abrir Spotify 🎧
+              Escuchar melodía
             </button>
           </motion.div>
         )}
