@@ -80,13 +80,13 @@ export const DAYS: DayItem[] = [
   {
     day: 6,
     title: "Estar con Imanol",
-    description: "Momentos simples que se vuelven gigantes.",
-    emoji: "🧸",
-    image: "/images/day06-imanol.webp",
-    sound: "/sounds/day06.mp3",
-    accentGradient: "from-pink-200 to-rose-200",
-    microGame: "hold",
+    description: "Risas que se contagian, incluso en silencio.",
+    emoji: "🤍",
+    accentGradient: "from-amber-50 via-rose-50 to-white",
+    sound: "/sounds/pop.mp3", // opcional, si luego quieres: puedes no reproducirlo
+    microGame: "tap",
   },
+
   {
     day: 7,
     title: "Todas las flores",

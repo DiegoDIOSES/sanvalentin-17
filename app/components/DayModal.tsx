@@ -23,6 +23,9 @@ import Day04TiniPuzzle from "./MicroGames/Day04TiniPuzzle";
 import Day05BuenosAires from "./DayScenes/Day05BuenosAires";
 import Day05LightCity from "./MicroGames/Day05LightCity";
 
+import Day06Imanol from "./DayScenes/Day06Imanol";
+import Day06GiggleBubbles from "./MicroGames/Day06GiggleBubbles";
+
 export default function DayModal({
   item,
   onClose,
@@ -179,6 +182,17 @@ export default function DayModal({
                   muted={muted}
                   spotifyUrl={item.spotifyUrl ?? ""}
                 />
+              </div>
+            </div>
+          ) : item.day === 6 ? (
+            <div className="space-y-4">
+              <Day06Imanol />
+              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+                <div className="text-sm font-semibold">Mini juego</div>
+                <p className="mt-1 text-xs text-zinc-600">
+                  Sin sonidos: explota burbujitas con calma 😄
+                </p>
+                <Day06GiggleBubbles onWin={onWin} />
               </div>
             </div>
           ) : !isFinal ? (
