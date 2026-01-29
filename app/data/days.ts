@@ -12,6 +12,7 @@ export interface DayItem {
   accentGradient: string;
   microGame: MicroGameType;
   videoSrc?: string;
+  spotifyUrl?: string;
 }
 
 /**
@@ -73,7 +74,8 @@ export const DAYS: DayItem[] = [
     sound: "/sounds/day05.mp3",
     accentGradient: "from-rose-300 to-pink-100",
     microGame: "drag",
-    videoSrc: "/videos/buenos-aires.mp4",
+    spotifyUrl:
+      "https://open.spotify.com/track/3eNenN5eoBwMRNPkmoyk81?si=75FDVLABRwqCHOszvmQmrw",
   },
   {
     day: 6,

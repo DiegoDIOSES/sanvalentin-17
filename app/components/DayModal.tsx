@@ -177,7 +177,7 @@ export default function DayModal({
                 <Day05LightCity
                   onWin={onWin}
                   muted={muted}
-                  videoSrc={item.videoSrc ?? ""}
+                  spotifyUrl={item.spotifyUrl ?? ""}
                 />
               </div>
             </div>

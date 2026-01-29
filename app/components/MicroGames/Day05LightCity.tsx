@@ -3,12 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { playSound } from "../../lib/sound";
-import VideoPopup from "../VideoPopup";
+import SpotifyLaunchModal from "../SpotifyLaunchModal";
 
 type Light = {
   id: string;
-  x: number; // 0..100 (%)
-  y: number; // 0..100 (%)
+  x: number;
+  y: number;
   label: string;
 };
 
@@ -37,18 +37,19 @@ const LIGHTS: Light[] = [
 export default function Day05LightCity({
   onWin,
   muted,
-  videoSrc,
+  spotifyUrl,
 }: {
   onWin: () => void;
   muted: boolean;
-  videoSrc: string;
+  spotifyUrl: string; // link spotify
 }) {
   const [on, setOn] = useState<Record<string, boolean>>({});
   const [activeText, setActiveText] = useState<string>(
     "Toca una luz para encender la ciudad ✨",
   );
   const [done, setDone] = useState(false);
-  const [showVideo, setShowVideo] = useState(false);
+
+  const [showLaunch, setShowLaunch] = useState(false);
 
   const progress = useMemo(() => {
     const count = LIGHTS.reduce((acc, l) => acc + (on[l.id] ? 1 : 0), 0);
@@ -64,19 +65,26 @@ export default function Day05LightCity({
     onWin();
     playSound("/sounds/unlock.mp3", muted, 0.8);
 
-    // un mini delay para que se sienta premium
-    const t = setTimeout(() => setShowVideo(true), 600);
-    return () => clearTimeout(t);
+    // modal premium + luego abre spotify
+    const t = window.setTimeout(() => setShowLaunch(true), 500);
+    return () => window.clearTimeout(t);
   }, [done, progress, onWin, muted]);
 
   const toggle = (l: Light) => {
     if (done) return;
     setOn((prev) => {
-      if (prev[l.id]) return prev; // ya encendida
+      if (prev[l.id]) return prev;
       return { ...prev, [l.id]: true };
     });
     setActiveText(l.label);
     playSound("/sounds/pop.mp3", muted, 0.55);
+  };
+
+  const openSpotify = () => {
+    // intenta abrir en nueva pestaña/Spotify app
+    try {
+      window.open(spotifyUrl, "_blank", "noopener,noreferrer");
+    } catch {}
   };
 
   return (
@@ -93,7 +101,7 @@ export default function Day05LightCity({
           onClick={() => {
             setOn({});
             setDone(false);
-            setShowVideo(false);
+            setShowLaunch(false);
             setActiveText("Toca una luz para encender la ciudad ✨");
             playSound("/sounds/pop.mp3", muted, 0.55);
           }}
@@ -118,13 +126,11 @@ export default function Day05LightCity({
           ))}
         </div>
 
-        {/* skyline simple */}
+        {/* skyline */}
         <div className="relative h-[220px] rounded-2xl border border-white/10 bg-white/5 backdrop-blur">
-          {/* “rio” */}
           <div className="absolute left-0 right-0 bottom-0 h-[70px] bg-white/5" />
           <div className="absolute left-0 right-0 bottom-0 h-[70px] bg-gradient-to-t from-black/25 to-transparent" />
 
-          {/* edificios */}
           <div className="absolute bottom-[60px] left-[6%] h-[85px] w-[80px] rounded-xl bg-white/10" />
           <div className="absolute bottom-[60px] left-[20%] h-[120px] w-[95px] rounded-2xl bg-white/10" />
           <div className="absolute bottom-[60px] left-[37%] h-[70px] w-[70px] rounded-xl bg-white/10" />
@@ -191,29 +197,47 @@ export default function Day05LightCity({
               “Hay ciudades que no se visitan. Se extrañan.” 🌙
             </div>
             <div className="mt-1 text-xs text-white/75">
-              (Y esta… se te ve bien.)
+              Y ahora… te llevo a escuchar esta melodía.
             </div>
 
             <button
               onClick={() => {
-                setShowVideo(true);
+                setShowLaunch(true);
                 playSound("/sounds/secret.mp3", muted, 0.7);
               }}
               className="mt-3 w-full rounded-2xl bg-white text-zinc-900 px-4 py-3 text-sm font-semibold"
             >
-              Ver videoclip 🎬
+              Abrir Spotify 🎧
             </button>
           </motion.div>
         )}
       </div>
 
-      <VideoPopup
-        open={showVideo}
-        onClose={() => setShowVideo(false)}
+      <SpotifyLaunchModal
+        open={showLaunch}
         muted={muted}
-        title="Buenos Aires — Tini"
-        videoSrc={videoSrc}
+        seconds={4}
+        onCancel={() => setShowLaunch(false)}
+        onDone={() => {
+          setShowLaunch(false);
+          openSpotify();
+        }}
       />
+
+      {/* fallback por si el navegador bloquea popups */}
+      {showLaunch && (
+        <div className="mt-3 text-[11px] text-zinc-600">
+          Si no se abre solo, al terminar toca{" "}
+          <button
+            onClick={openSpotify}
+            className="underline font-semibold"
+            type="button"
+          >
+            abrir Spotify
+          </button>
+          .
+        </div>
+      )}
     </div>
   );
 }
