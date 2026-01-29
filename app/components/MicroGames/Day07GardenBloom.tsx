@@ -709,7 +709,8 @@ function SeedTilt({ onDone }: { onDone: () => void }) {
     // iOS requiere permiso explícito
     async function init() {
       try {
-        // @ts-ignore
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
         if (
           typeof DeviceOrientationEvent !== "undefined" &&
           typeof (DeviceOrientationEvent as any).requestPermission ===
