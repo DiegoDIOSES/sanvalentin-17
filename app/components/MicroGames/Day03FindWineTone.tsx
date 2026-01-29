@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
+import ScratchRevealPopup from "../ScratchRevealPopup";
 
 function clamp(n: number, a: number, b: number) {
   return Math.max(a, Math.min(b, n));
@@ -47,7 +48,7 @@ export default function Day03FindWineTone({
 
   const [v, setV] = useState(0.15);
   const [locked, setLocked] = useState(false);
-  const [showCard, setShowCard] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
 
   const inRange = useMemo(() => Math.abs(v - TARGET) <= TOL, [v]);
 
@@ -59,24 +60,6 @@ export default function Day03FindWineTone({
     audioRef.current.volume = 0.35;
   }, []);
 
-  useEffect(() => {
-    if (locked) return;
-    if (!inRange) return;
-
-    // gana una vez
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLocked(true);
-    setShowCard(true);
-
-    if (!muted) {
-      try {
-        audioRef.current?.play();
-      } catch {}
-    }
-
-    onWin();
-  }, [inRange, locked, muted, onWin]);
-
   const bg = useMemo(() => {
     // mezcla en 2 tramos para que sea más rico
     if (v < 0.5) return mix(C1, C2, v / 0.5);
@@ -87,6 +70,25 @@ export default function Day03FindWineTone({
     () => (inRange ? "0 0 0 10px rgba(122,32,64,0.12)" : "none"),
     [inRange],
   );
+
+  useEffect(() => {
+    if (locked) return;
+    if (!inRange) return;
+
+    // gana una vez
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLocked(true);
+    setShowPopup(true);
+
+    if (!muted) {
+      try {
+        audioRef.current?.currentTime && (audioRef.current.currentTime = 0);
+        audioRef.current?.play();
+      } catch {}
+    }
+
+    onWin();
+  }, [inRange, locked, muted, onWin]);
 
   return (
     <div className="mt-4">
@@ -152,55 +154,25 @@ export default function Day03FindWineTone({
         </div>
       </div>
 
-      <AnimatePresence>
-        {showCard && (
-          <motion.div
-            className="mt-4 rounded-2xl border border-zinc-200 bg-white p-4"
-            initial={{ y: 8, opacity: 0, scale: 0.98 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: 8, opacity: 0, scale: 0.98 }}
-            transition={{ type: "spring", stiffness: 260, damping: 22 }}
-          >
-            <div className="text-xs text-zinc-600">Tarjeta editorial</div>
-            <div className="mt-1 text-sm font-semibold text-zinc-900">
-              Guardemos este tono 💗
-            </div>
-            <div className="mt-2 text-sm text-zinc-700 leading-relaxed">
-              “Hay colores que no se ven.
-              <br />
-              Se sienten.
-              <br />Y tú siempre sabes cuándo uno es el correcto.”
-            </div>
-
-            <div className="mt-4 flex gap-2">
-              <button
-                onClick={() => {
-                  try {
-                    localStorage.setItem("wineTone", String(v));
-                  } catch {}
-                }}
-                className="flex-1 rounded-2xl bg-zinc-900 text-white px-4 py-3 text-sm font-semibold"
-              >
-                Guardar tono ✨
-              </button>
-              <button
-                onClick={() => {
-                  setLocked(false);
-                  setShowCard(false);
-                  setV(0.15);
-                }}
-                className="rounded-2xl bg-white border border-zinc-200 px-4 py-3 text-sm font-semibold"
-              >
-                Reintentar
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       <div className="mt-2 text-[11px] text-zinc-600">
         Tip: si llegas al tono correcto, se siente “calmadito” 😌
       </div>
+
+      {/* ✅ Popup “raspa y revela” */}
+      <ScratchRevealPopup
+        open={showPopup}
+        color={bg}
+        muted={muted}
+        title="El tono perfecto 🍷"
+        message={`“Hay colores que no se ven.
+Se sienten.
+Y tú siempre sabes cuándo uno es el correcto.”`}
+        onClose={() => {
+          setShowPopup(false);
+          // NO reseteamos el juego automáticamente para que se sienta “logrado”
+          // Si quieres reintento, mueve el slider fuera y vuelve a entrar.
+        }}
+      />
     </div>
   );
 }
