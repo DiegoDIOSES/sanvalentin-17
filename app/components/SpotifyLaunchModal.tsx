@@ -109,10 +109,6 @@ export default function SpotifyLaunchModal({
                     transition={{ ease: "easeOut", duration: 0.35 }}
                   />
                 </div>
-
-                <div className="mt-3 text-[11px] text-zinc-600">
-                  Si no se abre automático, te saldrá un botón para abrirlo.
-                </div>
               </div>
 
               <div className="mt-4 flex gap-2">
