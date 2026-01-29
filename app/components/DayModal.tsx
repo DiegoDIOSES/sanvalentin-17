@@ -20,6 +20,9 @@ import Day03FindWineTone from "./MicroGames/Day03FindWineTone";
 import Day04Tini from "./DayScenes/Day04Tini";
 import Day04TiniPuzzle from "./MicroGames/Day04TiniPuzzle";
 
+import Day05BuenosAires from "./DayScenes/Day05BuenosAires";
+import Day05LightCity from "./MicroGames/Day05LightCity";
+
 export default function DayModal({
   item,
   onClose,
@@ -160,6 +163,21 @@ export default function DayModal({
                   onWin={onWin}
                   muted={muted}
                   imageSrc="/images/tini.jpg"
+                />
+              </div>
+            </div>
+          ) : item.day === 5 ? (
+            <div className="space-y-4">
+              <Day05BuenosAires />
+              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+                <div className="text-sm font-semibold">Mini juego</div>
+                <p className="mt-1 text-xs text-zinc-600">
+                  Enciende la ciudad y desbloquea el videoclip 🌆✨
+                </p>
+                <Day05LightCity
+                  onWin={onWin}
+                  muted={muted}
+                  videoSrc={item.videoSrc ?? ""}
                 />
               </div>
             </div>
