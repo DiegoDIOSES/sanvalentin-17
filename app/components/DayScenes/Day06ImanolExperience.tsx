@@ -203,11 +203,6 @@ export default function Day06ImanolExperience({ onWin }: { onWin: () => void }) 
           </div>
         </div>
       </div>
-
-      {/* nota */}
-      <div className="mt-3 text-[11px] text-zinc-600 text-center">
-        Sin sonidos • solo sensación.
-      </div>
     </div>
   );
 }
