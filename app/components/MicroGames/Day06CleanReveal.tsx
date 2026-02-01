@@ -268,10 +268,6 @@ export default function Day06CleanReveal({
                   {subtitle}
                 </div>
               )}
-
-              <div className="mt-5 text-[11px] md:text-xs text-zinc-600">
-                Raspa con tu dedo o mouse hasta limpiar todo.
-              </div>
             </div>
           </div>
 
@@ -300,10 +296,6 @@ export default function Day06CleanReveal({
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
-
-        <div className="mt-3 text-[11px] text-zinc-600">
-          Tip: en móvil, arrastra el dedo (no necesitas apretar ningún botón).
         </div>
       </div>
     </div>
