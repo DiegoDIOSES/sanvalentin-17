@@ -286,13 +286,6 @@ export default function DayModal({
             </div>
           )}
         </div>
-
-        {/* FOOTER (opcional; si no lo quieres, bórralo) */}
-        <div className="shrink-0 px-4 pb-4 md:px-7 md:pb-6">
-          <div className="text-center text-[11px] text-zinc-500">
-            Sin sonidos • solo sensación.
-          </div>
-        </div>
       </motion.div>
     </motion.div>
   );
