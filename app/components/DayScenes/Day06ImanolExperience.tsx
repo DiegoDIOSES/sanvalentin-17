@@ -150,9 +150,6 @@ export default function Day06ImanolExperience({ onWin }: { onWin: () => void }) 
                     <div className="mt-1 text-lg md:text-2xl font-semibold text-zinc-900">
                       Limpia todo el panel 🤍
                     </div>
-                    <div className="mt-2 text-sm text-zinc-700">
-                      Esta sí se descubre completa.
-                    </div>
                   </div>
 
                   <div className="mt-5">
@@ -170,7 +167,7 @@ export default function Day06ImanolExperience({ onWin }: { onWin: () => void }) 
                       className="rounded-2xl bg-white border border-zinc-200 px-4 py-3 text-sm font-semibold"
                     >
                       Volver a mirar ✨
-                    </button>
+                      {/*</button>
                     <button
                       onClick={() => {
                         setCompleted(false);
@@ -179,7 +176,7 @@ export default function Day06ImanolExperience({ onWin }: { onWin: () => void }) 
                       className="rounded-2xl bg-zinc-900 text-white px-4 py-3 text-sm font-semibold"
                     >
                       Repetir
-                    </button>
+                    </button>*/}
                   </div>
                 </motion.div>
               )}
