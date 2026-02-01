@@ -1,6 +1,6 @@
 // app/data/days.ts
 
-export type MicroGameType = "tap" | "hold" | "drag";
+export type MicroGameType = "tap" | "hold" | "drag" | "custom";
 
 export interface DayItem {
   day: number;
@@ -80,11 +80,11 @@ export const DAYS: DayItem[] = [
   {
     day: 6,
     title: "Estar con Imanol",
-    description: "Risas que se contagian, incluso en silencio.",
+    description: "Una experiencia que se siente, sin hacer ruido.",
     emoji: "🤍",
     accentGradient: "from-amber-50 via-rose-50 to-white",
-    sound: "/sounds/pop.mp3", // opcional, si luego quieres: puedes no reproducirlo
-    microGame: "tap",
+    sound: "", // no se usa
+    microGame: "custom",
   },
   {
     day: 7,

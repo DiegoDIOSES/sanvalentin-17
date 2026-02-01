@@ -23,11 +23,12 @@ import Day04TiniPuzzle from "./MicroGames/Day04TiniPuzzle";
 import Day05BuenosAires from "./DayScenes/Day05BuenosAires";
 import Day05LightCity from "./MicroGames/Day05LightCity";
 
-import Day06Imanol from "./DayScenes/Day06Imanol";
-import Day06GiggleBubbles from "./MicroGames/Day06GiggleBubbles";
+import Day06ImanolExperience from "./DayScenes/Day06ImanolExperience";
+import Day06GiggleBubbles from "./MicroGames/Day06Constellation";
 
 import Day07Flowers from "./DayScenes/Day07Flowers";
 import Day07GardenBloom from "./MicroGames/Day07GardenBloom";
+import Day06Constellation from "./MicroGames/Day06Constellation";
 
 export default function DayModal({
   item,
@@ -189,13 +190,15 @@ export default function DayModal({
             </div>
           ) : item.day === 6 ? (
             <div className="space-y-4">
-              <Day06Imanol />
+              <Day06ImanolExperience onWin={function (): void {
+                          throw new Error("Function not implemented.");
+                        } } />
               <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
                 <div className="text-sm font-semibold">Mini juego</div>
                 <p className="mt-1 text-xs text-zinc-600">
                   Sin sonidos: explota burbujitas con calma 😄
                 </p>
-                <Day06GiggleBubbles onWin={onWin} />
+                <Day06Constellation onComplete={onWin} />
               </div>
             </div>
           ) : item.day === 7 ? (
