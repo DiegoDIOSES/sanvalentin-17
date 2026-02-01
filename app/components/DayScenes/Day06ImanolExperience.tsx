@@ -167,8 +167,8 @@ export default function Day06ImanolExperience({ onWin }: { onWin: () => void }) 
                       className="rounded-2xl bg-white border border-zinc-200 px-4 py-3 text-sm font-semibold"
                     >
                       Volver a mirar ✨
-                      {/*</button>
-                    <button
+                    </button>
+                    {/*<button
                       onClick={() => {
                         setCompleted(false);
                         setStep(1);
