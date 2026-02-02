@@ -41,6 +41,7 @@ export default function DayModal({
   const isFinal = item.day === 17;
 
   useEffect(() => {
+    // Sonido del día al abrir
     playSound(item.sound, muted, 0.85);
     return () => stopSound();
   }, [item.sound, muted]);
@@ -56,21 +57,23 @@ export default function DayModal({
     if (item.microGame === "hold") return <HoldGame onWin={onWin} />;
     return <DragGame onWin={onWin} />;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [item.microGame, muted]);
+  }, [item.microGame]);
 
   return (
     <motion.div
       className="
         fixed inset-0 z-50
-        flex items-center justify-center
-        bg-black/30
-        p-2 sm:p-3 md:p-6
+        flex items-end md:items-center justify-center
+        bg-black/40
+        px-3 pb-[max(12px,env(safe-area-inset-bottom))]
+        pt-[max(12px,env(safe-area-inset-top))]
+        md:p-6
       "
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      // ✅ click fuera SIEMPRE cierra (no bloqueos)
       onMouseDown={() => {
+        // cerrar tocando el overlay
         playSound("/sounds/pop.mp3", muted, 0.6);
         onClose();
       }}
@@ -78,181 +81,175 @@ export default function DayModal({
       <motion.div
         onMouseDown={(e) => e.stopPropagation()}
         className="
-          w-full
-          max-w-[96vw] sm:max-w-2xl
+          w-full max-w-2xl
           overflow-hidden
-          rounded-[24px] sm:rounded-[26px]
           bg-white shadow-soft
-          max-h-[92vh] md:max-h-[86vh]
           flex flex-col
+          max-h-[92vh] md:max-h-[85vh]
+          rounded-[26px] md:rounded-[26px]
+          rounded-b-[26px]
+          rounded-t-[28px]
         "
-        initial={{ y: 26, scale: 0.985, opacity: 0 }}
+        initial={{ y: 40, scale: 0.98, opacity: 0 }}
         animate={{ y: 0, scale: 1, opacity: 1 }}
-        exit={{ y: 22, scale: 0.985, opacity: 0 }}
+        exit={{ y: 30, scale: 0.98, opacity: 0 }}
         transition={{ type: "spring", stiffness: 260, damping: 26 }}
       >
         {/* Header */}
         <div
-          className={`relative bg-gradient-to-br ${item.accentGradient}
-            px-5 py-5 sm:px-6 sm:py-6 md:px-7 md:py-6
-          `}
+          className={`relative bg-gradient-to-br ${item.accentGradient}`}
         >
-          <div className="relative flex items-start justify-between gap-4">
-            <div>
-              <div className="text-xs font-semibold text-zinc-700">
-                Día {item.day}
+          <div className="relative p-5 md:p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <div className="text-xs font-semibold text-zinc-700">
+                  Día {item.day}
+                </div>
+
+                <h2 className="mt-1 text-[22px] md:text-3xl font-semibold leading-tight">
+                  {item.title}
+                </h2>
+
+                <p className="mt-2 text-sm text-zinc-700 max-w-xl">
+                  {item.description}
+                </p>
+
+                <div className="mt-3 text-xs text-zinc-700">
+                  Victorias: <span className="font-semibold">{wins}</span>
+                </div>
               </div>
 
-              <h2 className="mt-1 text-[22px] sm:text-2xl md:text-3xl font-semibold leading-tight">
-                {item.title}
-              </h2>
-
-              <p className="mt-2 text-[13px] sm:text-sm text-zinc-700 max-w-xl leading-relaxed">
-                {item.description}
-              </p>
-
-              <div className="mt-3 text-xs text-zinc-700">
-                Victorias: <span className="font-semibold">{wins}</span>
-              </div>
+              {/* ✅ Cerrar siempre clickeable */}
+              <button
+                type="button"
+                onMouseDown={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  playSound("/sounds/pop.mp3", muted, 0.6);
+                  onClose();
+                }}
+                className="
+                  pointer-events-auto
+                  relative z-50
+                  rounded-2xl
+                  bg-white/80 backdrop-blur
+                  border border-white/60
+                  px-3 py-2 text-sm
+                  shadow-soft
+                  active:scale-[0.98]
+                "
+              >
+                Cerrar ✕
+              </button>
             </div>
 
-            {/* ✅ botón cerrar principal NO bloqueado */}
-            <button
-              onClick={() => {
-                playSound("/sounds/pop.mp3", muted, 0.6);
-                onClose();
-              }}
-              className="
-                rounded-2xl
-                bg-white/70 backdrop-blur
-                px-3 py-2
-                text-sm
-              "
+            <motion.div
+              className="mt-4 text-5xl md:text-6xl"
+              initial={{ scale: 0.8, rotate: -6, opacity: 0 }}
+              animate={{ scale: 1, rotate: 0, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 220, damping: 14 }}
             >
-              Cerrar ✕
-            </button>
+              {item.emoji}
+            </motion.div>
           </div>
-
-          <motion.div
-            className="mt-4 text-5xl sm:text-6xl md:text-6xl"
-            initial={{ scale: 0.82, rotate: -6, opacity: 0 }}
-            animate={{ scale: 1, rotate: 0, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 220, damping: 14 }}
-          >
-            {item.emoji}
-          </motion.div>
         </div>
 
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-6 sm:py-6 md:px-7 md:py-6">
+        {/* Body (scroll bien en móvil) */}
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 md:p-7">
+          {/* Día 1 */}
           {item.day === 1 ? (
-            <div className="space-y-5">
+            <div className="space-y-4">
               <Day01Giraffe />
-              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-5">
+              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
                 <div className="text-sm font-semibold">Mini juego</div>
                 <p className="mt-1 text-xs text-zinc-600">
                   Alimenta a la jirafa con hojitas 🌿
                 </p>
-                <div className="mt-3">
-                  <Day01FeedGiraffe onWin={onWin} />
-                </div>
+                <Day01FeedGiraffe onWin={onWin} />
               </div>
             </div>
           ) : item.day === 2 ? (
-            <div className="space-y-5">
+            <div className="space-y-4">
               <Day02ChocolateCake />
-              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-5">
+              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
                 <div className="text-sm font-semibold">Mini juego</div>
                 <p className="mt-1 text-xs text-zinc-600">
                   Decora la torta con ingredientes antes de que se acabe el
                   tiempo ✨
                 </p>
-                <div className="mt-3">
-                  <Day02DecorateCake onWin={onWin} />
-                </div>
+                <Day02DecorateCake onWin={onWin} />
               </div>
             </div>
           ) : item.day === 3 ? (
-            <div className="space-y-5">
+            <div className="space-y-4">
               <Day03WineTone />
-              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-5">
+              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
                 <div className="text-sm font-semibold">Mini juego</div>
                 <p className="mt-1 text-xs text-zinc-600">
-                  Encuentra el tono vino perfecto 🍷
+                  Encuentra el tono vino perfecto. No es rapidez… es sensación 🍷
                 </p>
-                <div className="mt-3">
-                  <Day03FindWineTone onWin={onWin} muted={muted} />
-                </div>
+                <Day03FindWineTone onWin={onWin} muted={muted} />
               </div>
             </div>
           ) : item.day === 4 ? (
-            <div className="space-y-5">
+            <div className="space-y-4">
               <Day04Tini />
-              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-5">
+              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
                 <div className="text-sm font-semibold">Mini juego</div>
                 <p className="mt-1 text-xs text-zinc-600">
                   Rompecabezas de 15 piezas. Cada vez se mezcla distinto 🧩
                 </p>
-                <div className="mt-3">
-                  <Day04TiniPuzzle
-                    onWin={onWin}
-                    muted={muted}
-                    imageSrc="/images/tini.jpg"
-                  />
-                </div>
+                <Day04TiniPuzzle
+                  onWin={onWin}
+                  muted={muted}
+                  imageSrc="/images/tini.jpg"
+                />
               </div>
             </div>
           ) : item.day === 5 ? (
-            <div className="space-y-5">
+            <div className="space-y-4">
               <Day05BuenosAires />
-              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-5">
+              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
                 <div className="text-sm font-semibold">Mini juego</div>
                 <p className="mt-1 text-xs text-zinc-600">
-                  Enciende la ciudad y abre Spotify 🌆✨
+                  Enciende la ciudad y luego te llevo a la melodía 🌆✨
                 </p>
-                <div className="mt-3">
-                  <Day05LightCity
-                    onWin={onWin}
-                    muted={muted}
-                    spotifyUrl={item.spotifyUrl ?? ""}
-                  />
-                </div>
+                <Day05LightCity
+                  onWin={onWin}
+                  muted={muted}
+                  spotifyUrl={item.spotifyUrl ?? ""}
+                />
               </div>
             </div>
           ) : item.day === 6 ? (
             <div className="space-y-4">
-              {/* ✅ Más “cómodo” en celular: altura mayor y con límites sanos */}
-              <div className="h-[74vh] sm:h-[68vh] md:h-[62vh] min-h-[520px] sm:min-h-[560px] md:min-h-[520px] max-h-[860px]">
+              {/* ✅ Experiencia grande: que el componente use el alto disponible */}
+              <div className="min-h-[66vh] md:min-h-[62vh]">
                 <Day06ImanolExperience onWin={onWin} />
-              </div>
-
-              <div className="pt-1 text-[11px] text-zinc-600 text-center">
-                Sin sonidos • solo sensación.
               </div>
             </div>
           ) : item.day === 7 ? (
-            <div className="space-y-5">
+            <div className="space-y-4">
               <Day07Flowers />
-              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-5">
+              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
                 <div className="text-sm font-semibold">Mini juego</div>
                 <p className="mt-1 text-xs text-zinc-600">
                   5 semillas, 5 gestos distintos. Haz florecer el jardín 🌸
                 </p>
-                <div className="mt-3">
-                  <Day07GardenBloom onWin={onWin} muted={muted} />
-                </div>
+                <Day07GardenBloom onWin={onWin} muted={muted} />
               </div>
             </div>
           ) : !isFinal ? (
-            <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-5">
+            <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
               <div className="text-sm font-semibold">Mini juego</div>
               <p className="mt-1 text-xs text-zinc-600">
                 Cada día se siente distinto 😉
               </p>
-              <div className="mt-3">{Game}</div>
+              {Game}
             </div>
           ) : (
-            <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-6">
+            <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-5">
               <div className="text-sm font-semibold">El sobre final 💌</div>
               <p className="mt-2 text-sm text-zinc-700 leading-relaxed">
                 “Esto es solo una de las cosas que te gustan.
@@ -260,7 +257,7 @@ export default function DayModal({
                 Pero compartirlas contigo… empieza a gustarme más.”
               </p>
 
-              <div className="mt-5 flex flex-col sm:flex-row gap-2">
+              <div className="mt-4 flex flex-col sm:flex-row gap-2">
                 <button
                   onClick={() => {
                     confetti({
@@ -288,6 +285,11 @@ export default function DayModal({
               </div>
             </div>
           )}
+        </div>
+
+        {/* Footer note (no ocupa mucho en móvil) */}
+        <div className="border-t border-zinc-100 px-4 py-3 text-center text-[11px] text-zinc-600">
+          Sin sonidos • solo sensación.
         </div>
       </motion.div>
     </motion.div>
