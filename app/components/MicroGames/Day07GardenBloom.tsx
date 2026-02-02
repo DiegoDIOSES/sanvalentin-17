@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import confetti from "canvas-confetti";
 
-type SeedType = "tap" | "hold" | "circle" | "blow" | "tilt";
+type SeedType = "tap" | "hold" | "slide" | "blow" | "tilt";
 
 type Seed = {
   id: string;
@@ -12,7 +12,7 @@ type Seed = {
   x: number; // %
   y: number; // %
   done: boolean;
-  hue: number; // para flor
+  hue: number;
 };
 
 function rand(min: number, max: number) {
@@ -38,55 +38,70 @@ function hueToPastel(h: number) {
 
 function petalConfetti() {
   confetti({
-    particleCount: 90,
-    spread: 75,
-    startVelocity: 22,
-    gravity: 0.9,
-    scalar: 0.9,
-    origin: { y: 0.4 },
+    particleCount: 120,
+    spread: 85,
+    startVelocity: 26,
+    gravity: 0.95,
+    scalar: 0.95,
+    origin: { y: 0.35 },
   });
 }
 
-/** 🌸 lluvia de emojis */
-function FlowerEmojiRain({ show }: { show: boolean }) {
-  const items = useMemo(() => {
-    if (!show) return [];
-    const emojis = ["🌸", "🌼", "🌷", "💐", "🌺", "🪷"];
-    return Array.from({ length: 58 }).map((_, i) => ({
-      id: `rain-${i}-${Math.random().toString(16).slice(2)}`,
-      x: rand(0, 100),
-      delay: rand(0, 0.85),
-      dur: rand(2.6, 4.2),
-      size: rand(18, 34),
-      rot: rand(-35, 35),
-      emoji: emojis[Math.floor(Math.random() * emojis.length)],
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 640px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener?.("change", update);
+    return () => mq.removeEventListener?.("change", update);
+  }, []);
+  return isMobile;
+}
+
+type RainPetal = {
+  id: string;
+  x: number;
+  delay: number;
+  emoji: string;
+  size: number;
+};
+
+function FlowerRain({ show }: { show: boolean }) {
+  const petals = useMemo<RainPetal[]>(() => {
+    const emojis = ["🌸", "🌷", "🌼", "💐", "🌺"];
+    return Array.from({ length: 42 }).map((_, i) => ({
+      id: `p-${i}-${Math.random()}`,
+      x: rand(3, 97),
+      delay: rand(0, 0.8),
+      emoji: emojis[Math.floor(rand(0, emojis.length))],
+      size: Math.round(rand(18, 28)),
     }));
-  }, [show]);
+  }, []);
 
   return (
     <AnimatePresence>
       {show && (
         <motion.div
-          className="pointer-events-none absolute inset-0 z-[60] overflow-hidden"
+          className="pointer-events-none absolute inset-0 z-40 overflow-hidden"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.25 }}
         >
-          {items.map((it) => (
+          {petals.map((p) => (
             <motion.div
-              key={it.id}
-              className="absolute top-[-12%]"
-              style={{ left: `${it.x}%`, fontSize: `${it.size}px` }}
-              initial={{ y: "-10vh", rotate: it.rot, opacity: 0 }}
-              animate={{ y: "115vh", rotate: it.rot * 3, opacity: 1 }}
+              key={p.id}
+              className="absolute top-0"
+              style={{ left: `${p.x}%`, fontSize: p.size }}
+              initial={{ y: -40, rotate: rand(-20, 20), opacity: 0 }}
+              animate={{ y: 520, rotate: rand(-160, 160), opacity: 1 }}
               transition={{
-                delay: it.delay,
-                duration: it.dur,
+                duration: rand(2.6, 3.8),
+                delay: p.delay,
                 ease: "easeInOut",
               }}
             >
-              {it.emoji}
+              {p.emoji}
             </motion.div>
           ))}
         </motion.div>
@@ -95,118 +110,52 @@ function FlowerEmojiRain({ show }: { show: boolean }) {
   );
 }
 
-/** Evalúa si un trazo se parece a un círculo */
-function scoreCircle(points: { x: number; y: number }[]) {
-  if (points.length < 18) return { ok: false, score: 0 };
-
-  let minX = Infinity,
-    minY = Infinity,
-    maxX = -Infinity,
-    maxY = -Infinity;
-
-  for (const p of points) {
-    minX = Math.min(minX, p.x);
-    minY = Math.min(minY, p.y);
-    maxX = Math.max(maxX, p.x);
-    maxY = Math.max(maxY, p.y);
-  }
-
-  const w = maxX - minX;
-  const h = maxY - minY;
-  if (w < 60 || h < 60) return { ok: false, score: 0 };
-
-  const aspect = w / h;
-  const aspectScore = 1 - Math.min(Math.abs(aspect - 1), 1);
-
-  const cx = (minX + maxX) / 2;
-  const cy = (minY + maxY) / 2;
-
-  const radii = points.map((p) => Math.hypot(p.x - cx, p.y - cy));
-  const rAvg = radii.reduce((a, b) => a + b, 0) / radii.length;
-
-  const rVar =
-    radii.reduce((acc, r) => acc + Math.pow(r - rAvg, 2), 0) / radii.length;
-  const rStd = Math.sqrt(rVar);
-  const radiusScore = 1 - clamp(rStd / (rAvg * 0.35), 0, 1);
-
-  const first = points[0];
-  const last = points[points.length - 1];
-  const closeDist = Math.hypot(last.x - first.x, last.y - first.y);
-  const closeScore = 1 - clamp(closeDist / (rAvg * 0.9), 0, 1);
-
-  let length = 0;
-  for (let i = 1; i < points.length; i++) {
-    length += Math.hypot(
-      points[i].x - points[i - 1].x,
-      points[i].y - points[i - 1].y,
-    );
-  }
-  const lengthScore = clamp(length / (2 * Math.PI * rAvg), 0, 1);
-
-  const score =
-    0.35 * aspectScore +
-    0.35 * radiusScore +
-    0.2 * closeScore +
-    0.1 * lengthScore;
-
-  return { ok: score > 0.68, score: clamp(score, 0, 1) };
-}
-
 export default function Day07GardenBloom({
   onWin,
-  muted,
+  muted, // (ya no lo usamos, pero lo dejamos por compatibilidad)
 }: {
   onWin: () => void;
   muted: boolean;
 }) {
+  const isMobile = useIsMobile();
+
   const [seeds, setSeeds] = useState<Seed[]>(() => [
-    { id: "s1", type: "tap", x: 18, y: 38, done: false, hue: rand(320, 360) },
-    { id: "s2", type: "hold", x: 44, y: 26, done: false, hue: rand(0, 35) },
-    // ✅ antes era "drag", ahora "circle"
-    { id: "s3", type: "circle", x: 72, y: 38, done: false, hue: rand(35, 70) },
-    { id: "s4", type: "blow", x: 28, y: 68, done: false, hue: rand(90, 140) },
-    { id: "s5", type: "tilt", x: 70, y: 70, done: false, hue: rand(190, 240) },
+    // posiciones para desktop (base)
+    { id: "s1", type: "tap", x: 18, y: 42, done: false, hue: rand(320, 360) },
+    { id: "s2", type: "hold", x: 46, y: 28, done: false, hue: rand(0, 35) },
+    { id: "s3", type: "slide", x: 74, y: 42, done: false, hue: rand(35, 70) },
+    { id: "s4", type: "blow", x: 30, y: 72, done: false, hue: rand(90, 140) },
+    { id: "s5", type: "tilt", x: 72, y: 72, done: false, hue: rand(190, 240) },
   ]);
+
+  // posiciones mobile (más ordenadas, sin choque con header)
+  const mobilePos = useMemo(() => {
+    return {
+      s1: { x: 22, y: 46 },
+      s2: { x: 62, y: 46 },
+      s3: { x: 22, y: 72 },
+      s4: { x: 62, y: 72 },
+      s5: { x: 42, y: 58 },
+    };
+  }, []);
 
   const doneCount = useMemo(() => seeds.filter((s) => s.done).length, [seeds]);
   const allDone = doneCount === seeds.length;
 
-  const [emojiRain, setEmojiRain] = useState(false);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const activeSeed = useMemo(
+    () => seeds.find((s) => s.id === activeId) ?? null,
+    [seeds, activeId],
+  );
 
-  // 🌬️ viento suave (opcional)
-  const windRef = useRef<HTMLAudioElement | null>(null);
-  useEffect(() => {
-    try {
-      const a = new Audio("/sounds/wind.mp3");
-      a.loop = true;
-      a.volume = 0.2;
-      windRef.current = a;
-      if (!muted) a.play().catch(() => {});
-    } catch {}
-
-    return () => {
-      try {
-        windRef.current?.pause();
-        windRef.current = null;
-      } catch {}
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    const a = windRef.current;
-    if (!a) return;
-    if (muted) a.pause();
-    else a.play().catch(() => {});
-  }, [muted]);
+  const [rain, setRain] = useState(false);
 
   useEffect(() => {
     if (!allDone) return;
     petalConfetti();
-    setEmojiRain(true);
+    setRain(true);
     onWin();
-
-    const t = window.setTimeout(() => setEmojiRain(false), 2600);
+    const t = window.setTimeout(() => setRain(false), 4200);
     return () => window.clearTimeout(t);
   }, [allDone, onWin]);
 
@@ -214,19 +163,34 @@ export default function Day07GardenBloom({
     setSeeds((prev) =>
       prev.map((s) => (s.id === id ? { ...s, done: true } : s)),
     );
+    setActiveId(null);
   };
 
   const cycleFlowerColor = (id: string) => {
     setSeeds((prev) =>
-      prev.map((s) => (s.id !== id ? s : { ...s, hue: (s.hue + 28) % 360 })),
+      prev.map((s) => {
+        if (s.id !== id) return s;
+        return { ...s, hue: (s.hue + 28) % 360 };
+      }),
     );
     vibrate(18);
   };
 
-  return (
-    <div className="mt-3 relative">
-      <FlowerEmojiRain show={emojiRain} />
+  const resetAll = () => {
+    setActiveId(null);
+    setSeeds((prev) =>
+      prev.map((s) => ({
+        ...s,
+        done: false,
+        hue: (s.hue + rand(30, 140)) % 360,
+      })),
+    );
+  };
 
+  const panelHeight = isMobile ? "h-[420px]" : "h-[360px] md:h-[420px]";
+
+  return (
+    <div className="mt-3">
       <div className="flex items-center justify-between gap-3">
         <div className="text-xs text-zinc-700">
           Jardín:{" "}
@@ -236,15 +200,7 @@ export default function Day07GardenBloom({
         </div>
 
         <button
-          onClick={() => {
-            setSeeds((prev) =>
-              prev.map((s) => ({
-                ...s,
-                done: false,
-                hue: (s.hue + rand(30, 140)) % 360,
-              })),
-            );
-          }}
+          onClick={resetAll}
           className="rounded-xl bg-white border border-zinc-200 px-3 py-2 text-xs font-semibold"
         >
           Repetir 🔁
@@ -256,10 +212,14 @@ export default function Day07GardenBloom({
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-pink-200/35 blur-3xl" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-amber-200/30 blur-3xl" />
 
-        <div className="relative h-[320px] md:h-[360px] rounded-2xl border border-white/70 bg-white/55 backdrop-blur overflow-hidden">
+        <div
+          className={`relative ${panelHeight} rounded-2xl border border-white/70 bg-white/55 backdrop-blur overflow-hidden`}
+        >
+          <FlowerRain show={rain} />
+
           {/* instrucción */}
-          <div className="absolute left-3 right-3 top-3 z-20">
-            <div className="rounded-2xl border border-zinc-200 bg-white/80 backdrop-blur px-4 py-3">
+          <div className="absolute left-3 right-3 top-3 z-10">
+            <div className="rounded-2xl border border-zinc-200 bg-white/85 backdrop-blur px-4 py-3">
               <div className="text-[11px] text-zinc-600">
                 Cada flor aparece cuando la cuidas.
               </div>
@@ -270,22 +230,83 @@ export default function Day07GardenBloom({
           </div>
 
           {/* semillas/flores */}
-          {seeds.map((s) => (
-            <SeedOrFlower
-              key={s.id}
-              seed={s}
-              muted={muted}
-              color={hueToPastel(s.hue)}
-              onDone={() => markDone(s.id)}
-              onFlowerTap={() => cycleFlowerColor(s.id)}
-            />
-          ))}
+          {seeds.map((s) => {
+            const pos = isMobile
+              ? mobilePos[s.id as keyof typeof mobilePos]
+              : { x: s.x, y: s.y };
+            return (
+              <div
+                key={s.id}
+                className="absolute -translate-x-1/2 -translate-y-1/2"
+                style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
+              >
+                {!s.done ? (
+                  <SeedChip
+                    type={s.type}
+                    onClick={() => setActiveId(s.id)}
+                    small={isMobile}
+                  />
+                ) : (
+                  <Flower
+                    color={hueToPastel(s.hue)}
+                    onTap={() => cycleFlowerColor(s.id)}
+                    type={s.type}
+                    small={isMobile}
+                  />
+                )}
+              </div>
+            );
+          })}
+
+          {/* overlay de tarea (grande y cómodo en móvil) */}
+          <AnimatePresence>
+            {activeSeed && (
+              <motion.div
+                className="absolute inset-0 z-30 bg-black/20 backdrop-blur-[1px] p-3 md:p-4 flex items-center justify-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onMouseDown={() => setActiveId(null)}
+              >
+                <motion.div
+                  className="w-full max-w-md rounded-3xl border border-zinc-200 bg-white/92 backdrop-blur shadow-soft overflow-hidden"
+                  initial={{ y: 10, scale: 0.98, opacity: 0 }}
+                  animate={{ y: 0, scale: 1, opacity: 1 }}
+                  exit={{ y: 10, scale: 0.98, opacity: 0 }}
+                  transition={{ type: "spring", stiffness: 260, damping: 22 }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                >
+                  <div className="p-4 border-b border-zinc-200 flex items-center justify-between">
+                    <div>
+                      <div className="text-xs text-zinc-600">Semilla</div>
+                      <div className="text-sm font-semibold text-zinc-900">
+                        {labelFor(activeSeed.type)}
+                      </div>
+                    </div>
+                    <button
+                      className="rounded-2xl bg-white border border-zinc-200 px-3 py-2 text-xs font-semibold"
+                      onClick={() => setActiveId(null)}
+                    >
+                      Cerrar ✕
+                    </button>
+                  </div>
+
+                  <div className="p-4">
+                    <TaskPanel
+                      type={activeSeed.type}
+                      onDone={() => markDone(activeSeed.id)}
+                    />
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* final */}
           <AnimatePresence>
             {allDone && (
               <motion.div
-                className="absolute left-3 right-3 bottom-3 rounded-2xl border border-zinc-200 bg-white/85 backdrop-blur p-4 z-20"
+                className="absolute left-3 right-3 bottom-3 rounded-2xl border border-zinc-200 bg-white/88 backdrop-blur p-4 z-20"
                 initial={{ y: 12, opacity: 0, scale: 0.98 }}
                 animate={{ y: 0, opacity: 1, scale: 1 }}
                 exit={{ y: 12, opacity: 0, scale: 0.98 }}
@@ -308,56 +329,82 @@ export default function Day07GardenBloom({
       </div>
 
       <div className="mt-2 text-[11px] text-zinc-600">
-        Tip: si el micrófono no está permitido, usa el fallback de soplar con
-        <span className="font-semibold"> swipe ↔</span>.
+        Tip: si el micrófono no está permitido, usa el fallback de soplar con{" "}
+        <span className="font-semibold">swipe ↔</span>.
       </div>
     </div>
   );
 }
 
-function SeedOrFlower({
-  seed,
-  muted,
-  color,
-  onDone,
-  onFlowerTap,
+function SeedChip({
+  type,
+  onClick,
+  small,
 }: {
-  seed: Seed;
-  muted: boolean;
-  color: string;
-  onDone: () => void;
-  onFlowerTap: () => void;
+  type: SeedType;
+  onClick: () => void;
+  small: boolean;
 }) {
+  const size = small ? "h-14 w-14" : "h-16 w-16";
+  const label = chipLabel(type);
+
   return (
-    <div
-      className="absolute -translate-x-1/2 -translate-y-1/2"
-      style={{ left: `${seed.x}%`, top: `${seed.y}%` }}
+    <button
+      type="button"
+      onClick={() => {
+        vibrate(10);
+        onClick();
+      }}
+      className={`relative ${size} rounded-2xl border border-zinc-200 bg-white/80 backdrop-blur shadow-soft overflow-hidden`}
+      aria-label={`semilla ${type}`}
     >
-      {!seed.done ? (
-        <SeedTask seed={seed} muted={muted} onDone={onDone} />
-      ) : (
-        <Flower color={color} onTap={onFlowerTap} type={seed.type} />
-      )}
-    </div>
+      <div className="absolute inset-0 bg-gradient-to-br from-white via-white to-zinc-50" />
+      <div className="relative h-full w-full grid place-items-center">
+        <div className="text-lg">🌱</div>
+        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] text-zinc-600 whitespace-nowrap">
+          {label}
+        </div>
+      </div>
+    </button>
   );
+}
+
+function chipLabel(t: SeedType) {
+  if (t === "tap") return "tap x18";
+  if (t === "hold") return "hold";
+  if (t === "slide") return "desliza →";
+  if (t === "blow") return "sopla / swipe";
+  return "inclina / barra";
+}
+
+function labelFor(t: SeedType) {
+  if (t === "tap") return "Tap rápido";
+  if (t === "hold") return "Mantén presionado";
+  if (t === "slide") return "Desliza para “dar sol”";
+  if (t === "blow") return "Sopla o haz swipe";
+  return "Inclina el celular (o usa la barra)";
 }
 
 function Flower({
   color,
   onTap,
   type,
+  small,
 }: {
   color: string;
   onTap: () => void;
   type: SeedType;
+  small: boolean;
 }) {
+  const size = small ? "h-14 w-14" : "h-16 w-16";
+
   const anim =
     type === "tap"
       ? { rotate: [0, 3, 0, -3, 0], y: [0, -2, 0] }
       : type === "hold"
         ? { scale: [1, 1.03, 1], y: [0, -3, 0] }
-        : type === "circle"
-          ? { y: [0, -4, 0], rotate: [0, 3, 0, -3, 0] }
+        : type === "slide"
+          ? { y: [0, -4, 0], x: [0, 2, 0, -2, 0] }
           : type === "blow"
             ? { x: [0, 6, 0, -6, 0], rotate: [0, 4, 0, -4, 0] }
             : { rotate: [0, 2, 0, -2, 0], x: [0, 3, 0] };
@@ -365,8 +412,11 @@ function Flower({
   return (
     <motion.button
       type="button"
-      onClick={onTap}
-      className="relative h-16 w-16 rounded-2xl border border-white/70 bg-white/55 backdrop-blur shadow-[0_18px_40px_rgba(0,0,0,0.06)]"
+      onClick={() => {
+        vibrate(16);
+        onTap();
+      }}
+      className={`relative ${size} rounded-2xl border border-white/70 bg-white/55 backdrop-blur shadow-[0_18px_40px_rgba(0,0,0,0.06)]`}
       animate={anim}
       transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
       aria-label="flor"
@@ -388,28 +438,24 @@ function Flower({
   );
 }
 
-function SeedTask({
-  seed,
-  muted,
-  onDone,
-}: {
-  seed: Seed;
-  muted: boolean;
-  onDone: () => void;
-}) {
-  if (seed.type === "tap") return <SeedTap onDone={onDone} />;
-  if (seed.type === "hold") return <SeedHold onDone={onDone} />;
-  if (seed.type === "circle") return <SeedDrawCircle onDone={onDone} />;
-  if (seed.type === "blow") return <SeedBlow onDone={onDone} muted={muted} />;
-  return <SeedTilt onDone={onDone} />;
+/* =========================
+   PANEL GRANDE DE TAREAS
+========================= */
+
+function TaskPanel({ type, onDone }: { type: SeedType; onDone: () => void }) {
+  if (type === "tap") return <TaskTap onDone={onDone} />;
+  if (type === "hold") return <TaskHold onDone={onDone} />;
+  if (type === "slide") return <TaskSlide onDone={onDone} />;
+  if (type === "blow") return <TaskBlow onDone={onDone} />;
+  return <TaskTilt onDone={onDone} />;
 }
 
-/** 🌱 1: Tap rápido */
-function SeedTap({ onDone }: { onDone: () => void }) {
+/** Tap rápido */
+function TaskTap({ onDone }: { onDone: () => void }) {
   const goal = 18;
   const [n, setN] = useState(0);
+  const [time, setTime] = useState(2600);
   const [ticking, setTicking] = useState(false);
-  const [time, setTime] = useState(2200);
 
   useEffect(() => {
     if (!ticking) return;
@@ -425,7 +471,7 @@ function SeedTap({ onDone }: { onDone: () => void }) {
     if (time > 0) return;
     setTicking(false);
     setN(0);
-    setTime(2200);
+    setTime(2600);
   }, [time, ticking]);
 
   useEffect(() => {
@@ -433,28 +479,22 @@ function SeedTap({ onDone }: { onDone: () => void }) {
   }, [n, goal, onDone]);
 
   return (
-    <motion.button
-      type="button"
-      onClick={() => {
-        if (!ticking) setTicking(true);
-        setN((v) => v + 1);
-        vibrate(10);
-      }}
-      className="relative h-16 w-16 rounded-2xl border border-zinc-200 bg-white shadow-soft overflow-hidden"
-      initial={{ scale: 0.95, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ type: "spring", stiffness: 280, damping: 18 }}
-      aria-label="semilla tap"
-    >
-      <div className="absolute inset-0 bg-gradient-to-br from-pink-100/60 via-white to-rose-50" />
-      <div className="relative h-full w-full grid place-items-center">
-        <div className="text-lg">🌱</div>
-        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] text-zinc-600">
-          tap x{goal}
-        </div>
-      </div>
+    <div className="space-y-3">
+      <div className="text-sm text-zinc-700">Toca rápido para crecer 🌱</div>
 
-      <div className="absolute left-0 right-0 bottom-0 h-1 bg-zinc-200">
+      <button
+        type="button"
+        onClick={() => {
+          if (!ticking) setTicking(true);
+          setN((v) => v + 1);
+          vibrate(10);
+        }}
+        className="w-full rounded-2xl bg-zinc-900 text-white px-4 py-4 font-semibold"
+      >
+        TAP ✨ ({n}/{goal})
+      </button>
+
+      <div className="h-2 rounded-full bg-zinc-200 overflow-hidden">
         <div
           className="h-full bg-zinc-900"
           style={{ width: `${(n / goal) * 100}%` }}
@@ -462,17 +502,18 @@ function SeedTap({ onDone }: { onDone: () => void }) {
       </div>
 
       {ticking && (
-        <div className="absolute top-1 right-1 text-[10px] px-2 py-1 rounded-full bg-white/80 border border-zinc-200">
-          {Math.ceil(time / 1000)}s
+        <div className="text-xs text-zinc-600">
+          Tiempo:{" "}
+          <span className="font-semibold">{Math.ceil(time / 1000)}s</span>
         </div>
       )}
-    </motion.button>
+    </div>
   );
 }
 
-/** 🌱 2: Hold */
-function SeedHold({ onDone }: { onDone: () => void }) {
-  const need = 1200;
+/** Hold */
+function TaskHold({ onDone }: { onDone: () => void }) {
+  const need = 1400;
   const [ms, setMs] = useState(0);
   const downRef = useRef(false);
 
@@ -480,13 +521,23 @@ function SeedHold({ onDone }: { onDone: () => void }) {
     if (ms >= need) onDone();
   }, [ms, need, onDone]);
 
+  useEffect(() => {
+    let id: number | null = null;
+    if (downRef.current) {
+      id = window.setInterval(() => setMs((v) => v + 40), 40);
+    }
+    return () => {
+      if (id) window.clearInterval(id);
+    };
+  }, [ms]);
+
+  const pct = clamp(ms / need, 0, 1);
+
   const start = () => {
     downRef.current = true;
     vibrate(12);
-    const id = window.setInterval(() => setMs((v) => v + 40), 40);
-    (start as any)._id = id;
+    (start as any)._id = window.setInterval(() => setMs((v) => v + 40), 40);
   };
-
   const stop = () => {
     downRef.current = false;
     const id = (start as any)._id as number | undefined;
@@ -494,221 +545,75 @@ function SeedHold({ onDone }: { onDone: () => void }) {
     if (ms < need) setMs(0);
   };
 
-  const pct = clamp(ms / need, 0, 1);
-
   return (
-    <motion.button
-      type="button"
-      onPointerDown={start}
-      onPointerUp={stop}
-      onPointerCancel={stop}
-      className="relative h-16 w-16 rounded-2xl border border-zinc-200 bg-white shadow-soft overflow-hidden"
-      initial={{ scale: 0.95, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ type: "spring", stiffness: 280, damping: 18 }}
-      aria-label="semilla hold"
-    >
-      <div className="absolute inset-0 bg-gradient-to-br from-amber-100/70 via-white to-rose-50" />
-      <div className="relative h-full w-full grid place-items-center">
-        <div className="text-lg">🌱</div>
-        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] text-zinc-600">
-          hold
-        </div>
+    <div className="space-y-3">
+      <div className="text-sm text-zinc-700">
+        Mantén presionado hasta completar 🤍
       </div>
-      <div className="absolute inset-0 grid place-items-center pointer-events-none">
-        <div className="h-12 w-12 rounded-full border border-zinc-200 bg-white/55">
-          <div
-            className="h-full w-full rounded-full"
-            style={{
-              background: `conic-gradient(#111827 ${pct * 360}deg, rgba(0,0,0,0.08) 0deg)`,
-            }}
-          />
-        </div>
+
+      <button
+        type="button"
+        onPointerDown={start}
+        onPointerUp={stop}
+        onPointerCancel={stop}
+        className="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-5 font-semibold"
+      >
+        Mantener…
+      </button>
+
+      <div className="h-2 rounded-full bg-zinc-200 overflow-hidden">
+        <div
+          className="h-full bg-zinc-900"
+          style={{ width: `${pct * 100}%` }}
+        />
       </div>
-    </motion.button>
+
+      <div className="text-xs text-zinc-600">{Math.round(pct * 100)}%</div>
+    </div>
   );
 }
 
-/** 🌱 3: Dibuja un círculo (reemplaza drag) */
-function SeedDrawCircle({ onDone }: { onDone: () => void }) {
-  const [open, setOpen] = useState(false);
-  const [score, setScore] = useState(0);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const drawing = useRef(false);
-  const pts = useRef<{ x: number; y: number }[]>([]);
-
-  const setup = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = Math.floor(rect.width * dpr);
-    canvas.height = Math.floor(rect.height * dpr);
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.lineWidth = 6;
-    ctx.strokeStyle = "rgba(24,24,27,0.55)";
-  };
-
-  const clear = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    pts.current = [];
-    setScore(0);
-  };
+/** Nueva actividad (reemplaza drag): SLIDE */
+function TaskSlide({ onDone }: { onDone: () => void }) {
+  const [v, setV] = useState(0);
 
   useEffect(() => {
-    if (!open) return;
-    setup();
-    clear();
-    const onResize = () => {
-      setup();
-      clear();
-    };
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-
-  const addPoint = (clientX: number, clientY: number) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    const x = clientX - rect.left;
-    const y = clientY - rect.top;
-
-    pts.current.push({ x, y });
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    if (pts.current.length === 1) {
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-    } else {
-      ctx.lineTo(x, y);
-      ctx.stroke();
-    }
-
-    const res = scoreCircle(pts.current);
-    setScore(res.score);
-
-    if (res.ok) {
-      setOpen(false);
-      onDone();
-      vibrate(18);
-    }
-  };
+    if (v >= 100) onDone();
+  }, [v, onDone]);
 
   return (
-    <>
-      <motion.button
-        type="button"
-        onClick={() => {
-          setOpen(true);
-          vibrate(10);
-        }}
-        className="relative h-16 w-16 rounded-2xl border border-zinc-200 bg-white shadow-soft overflow-hidden"
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 280, damping: 18 }}
-        aria-label="semilla circle"
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-yellow-100/70 via-white to-amber-50" />
-        <div className="relative h-full w-full grid place-items-center">
-          <div className="text-lg">🌱</div>
-          <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] text-zinc-600">
-            dibuja ⭕
-          </div>
+    <div className="space-y-3">
+      <div className="text-sm text-zinc-700">Desliza hasta el sol ☀️</div>
+
+      <div className="rounded-2xl border border-zinc-200 bg-white p-4">
+        <div className="flex items-center justify-between text-xs text-zinc-600">
+          <span>Progreso</span>
+          <span className="font-semibold">{v}%</span>
         </div>
-      </motion.button>
 
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            className="absolute inset-0 z-[50] bg-black/25 backdrop-blur-sm flex items-center justify-center p-3"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onPointerDown={() => setOpen(false)}
-          >
-            <motion.div
-              className="w-full max-w-[420px] rounded-3xl bg-white border border-zinc-200 shadow-soft overflow-hidden"
-              initial={{ y: 10, scale: 0.98, opacity: 0 }}
-              animate={{ y: 0, scale: 1, opacity: 1 }}
-              exit={{ y: 10, scale: 0.98, opacity: 0 }}
-              onPointerDown={(e) => e.stopPropagation()}
-            >
-              <div className="p-4 border-b border-zinc-200">
-                <div className="text-sm font-semibold text-zinc-900">
-                  Semilla — Dibuja un círculo ⭕
-                </div>
-                <div className="mt-1 text-xs text-zinc-600">
-                  Hazlo grande y cierra el círculo. Cuando esté bien, florece
-                  sola.
-                </div>
-              </div>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          step={1}
+          value={v}
+          onChange={(e) => {
+            setV(Number(e.target.value));
+            vibrate(8);
+          }}
+          className="mt-3 w-full"
+        />
 
-              <div className="p-4">
-                <div className="relative rounded-2xl border border-zinc-200 bg-zinc-50 overflow-hidden">
-                  <canvas
-                    ref={canvasRef}
-                    className="h-[230px] w-full touch-none"
-                    onPointerDown={(e) => {
-                      drawing.current = true;
-                      const ctx = canvasRef.current?.getContext("2d");
-                      ctx?.beginPath();
-                      addPoint(e.clientX, e.clientY);
-                    }}
-                    onPointerMove={(e) => {
-                      if (!drawing.current) return;
-                      addPoint(e.clientX, e.clientY);
-                    }}
-                    onPointerUp={() => {
-                      drawing.current = false;
-                    }}
-                    onPointerCancel={() => {
-                      drawing.current = false;
-                    }}
-                  />
-
-                  <div className="absolute left-3 top-3 rounded-full bg-white/80 border border-zinc-200 px-3 py-1 text-[11px] text-zinc-700">
-                    {Math.round(score * 100)}%
-                  </div>
-                </div>
-
-                <div className="mt-3 flex gap-2">
-                  <button
-                    onClick={clear}
-                    className="flex-1 rounded-2xl bg-white border border-zinc-200 px-4 py-3 text-sm font-semibold"
-                  >
-                    Borrar
-                  </button>
-                  <button
-                    onClick={() => setOpen(false)}
-                    className="flex-1 rounded-2xl bg-zinc-900 text-white px-4 py-3 text-sm font-semibold"
-                  >
-                    Cerrar
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+        <div className="mt-3 text-center text-lg">☀️</div>
+      </div>
+    </div>
   );
 }
 
-/** 🌱 4: Blow (mic opcional) + fallback swipe */
-function SeedBlow({ onDone }: { onDone: () => void; muted: boolean }) {
-  const [level, setLevel] = useState(0);
+/** Blow + fallback swipe */
+function TaskBlow({ onDone }: { onDone: () => void }) {
   const [mic, setMic] = useState<"idle" | "ok" | "denied">("idle");
+  const [level, setLevel] = useState(0);
   const [swipes, setSwipes] = useState(0);
 
   const rafRef = useRef<number | null>(null);
@@ -732,6 +637,7 @@ function SeedBlow({ onDone }: { onDone: () => void; muted: boolean }) {
         src.connect(analyser);
 
         setMic("ok");
+
         const data = new Uint8Array(analyser.frequencyBinCount);
 
         const loop = () => {
@@ -754,8 +660,6 @@ function SeedBlow({ onDone }: { onDone: () => void; muted: boolean }) {
           rafRef.current = requestAnimationFrame(loop);
         };
 
-        rafRef.current = requestAnimationFrame(loop);
-
         const cleanup = () => {
           try {
             if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -768,6 +672,7 @@ function SeedBlow({ onDone }: { onDone: () => void; muted: boolean }) {
           } catch {}
         };
 
+        rafRef.current = requestAnimationFrame(loop);
         (init as any)._cleanup = cleanup;
       } catch {
         setMic("denied");
@@ -802,49 +707,45 @@ function SeedBlow({ onDone }: { onDone: () => void; muted: boolean }) {
     }
   };
 
+  const pct = mic === "ok" ? level : swipes / 6;
+
   return (
-    <motion.button
-      type="button"
-      onPointerDown={onDown}
-      onPointerUp={onUp}
-      onPointerCancel={() => (startX.current = null)}
-      className="relative h-16 w-16 rounded-2xl border border-zinc-200 bg-white shadow-soft overflow-hidden"
-      initial={{ scale: 0.95, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ type: "spring", stiffness: 280, damping: 18 }}
-      aria-label="semilla blow"
-    >
-      <div className="absolute inset-0 bg-gradient-to-br from-emerald-100/65 via-white to-teal-50" />
-      <div className="relative h-full w-full grid place-items-center">
-        <div className="text-lg">🌱</div>
-        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] text-zinc-600">
-          {mic === "ok" ? "sopla" : "swipe ↔"}
-        </div>
+    <div className="space-y-3">
+      <div className="text-sm text-zinc-700">
+        {mic === "ok"
+          ? "Sopla fuerte 🌬️"
+          : "Mic bloqueado: haz swipe ↔ 6 veces"}
       </div>
 
-      <div className="absolute left-2 right-2 top-2 h-1.5 rounded-full bg-zinc-200 overflow-hidden">
-        <div
-          className="h-full bg-zinc-900"
-          style={{
-            width: `${mic === "ok" ? level * 100 : (swipes / 6) * 100}%`,
-          }}
-        />
-      </div>
-
-      {mic === "denied" && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 text-[9px] px-2 py-1 rounded-full bg-white/80 border border-zinc-200 text-zinc-600">
-          mic bloqueado
+      <div
+        className="rounded-2xl border border-zinc-200 bg-white p-4 select-none"
+        onPointerDown={onDown}
+        onPointerUp={onUp}
+        onPointerCancel={() => (startX.current = null)}
+      >
+        <div className="flex items-center justify-between text-xs text-zinc-600">
+          <span>Progreso</span>
+          <span className="font-semibold">{Math.round(pct * 100)}%</span>
         </div>
-      )}
-    </motion.button>
+
+        <div className="mt-3 h-2 rounded-full bg-zinc-200 overflow-hidden">
+          <div
+            className="h-full bg-zinc-900"
+            style={{ width: `${pct * 100}%` }}
+          />
+        </div>
+
+        <div className="mt-4 text-center text-2xl">🌬️</div>
+      </div>
+    </div>
   );
 }
 
-/** 🌱 5: Tilt (DeviceOrientation) + fallback slider */
-function SeedTilt({ onDone }: { onDone: () => void }) {
+/** Tilt + fallback slider */
+function TaskTilt({ onDone }: { onDone: () => void }) {
   const [supported, setSupported] = useState<boolean | null>(null);
   const [val, setVal] = useState(0);
-  const [slider, setSlider] = useState(0.0);
+  const [slider, setSlider] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -867,7 +768,6 @@ function SeedTilt({ onDone }: { onDone: () => void }) {
           setSupported(false);
           return;
         }
-
         if (
           typeof window === "undefined" ||
           !("DeviceOrientationEvent" in window)
@@ -875,7 +775,6 @@ function SeedTilt({ onDone }: { onDone: () => void }) {
           setSupported(false);
           return;
         }
-
         setSupported(true);
         window.addEventListener("deviceorientation", handler);
       } catch {
@@ -900,30 +799,27 @@ function SeedTilt({ onDone }: { onDone: () => void }) {
   const pct = supported ? val : slider;
 
   return (
-    <motion.div
-      className="relative h-16 w-16 rounded-2xl border border-zinc-200 bg-white shadow-soft overflow-hidden"
-      initial={{ scale: 0.95, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ type: "spring", stiffness: 280, damping: 18 }}
-      aria-label="semilla tilt"
-    >
-      <div className="absolute inset-0 bg-gradient-to-br from-sky-100/70 via-white to-indigo-50" />
-      <div className="relative h-full w-full grid place-items-center">
-        <div className="text-lg">🌱</div>
-        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] text-zinc-600">
-          {supported ? "inclina" : "slider"}
+    <div className="space-y-3">
+      <div className="text-sm text-zinc-700">
+        {supported
+          ? "Inclina el celular 📱"
+          : "Tu móvil no permite inclinación: usa la barra"}
+      </div>
+
+      <div className="rounded-2xl border border-zinc-200 bg-white p-4">
+        <div className="flex items-center justify-between text-xs text-zinc-600">
+          <span>Progreso</span>
+          <span className="font-semibold">{Math.round(pct * 100)}%</span>
         </div>
-      </div>
 
-      <div className="absolute left-2 right-2 top-2 h-1.5 rounded-full bg-zinc-200 overflow-hidden">
-        <div
-          className="h-full bg-zinc-900"
-          style={{ width: `${pct * 100}%` }}
-        />
-      </div>
+        <div className="mt-3 h-2 rounded-full bg-zinc-200 overflow-hidden">
+          <div
+            className="h-full bg-zinc-900"
+            style={{ width: `${pct * 100}%` }}
+          />
+        </div>
 
-      {!supported && (
-        <div className="absolute left-2 right-2 bottom-2">
+        {!supported && (
           <input
             type="range"
             min={0}
@@ -934,10 +830,12 @@ function SeedTilt({ onDone }: { onDone: () => void }) {
               setSlider(Number(e.target.value));
               vibrate(8);
             }}
-            className="w-full"
+            className="mt-4 w-full"
           />
-        </div>
-      )}
-    </motion.div>
+        )}
+
+        <div className="mt-3 text-center text-xl">💫</div>
+      </div>
+    </div>
   );
 }
