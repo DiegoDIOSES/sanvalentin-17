@@ -40,16 +40,17 @@ export default function DayModal({
   const [wins, setWins] = useState(0);
   const isFinal = item.day === 17;
 
+  const isImmersive = item.day === 6; // ✅ modo inmersivo solo para el día 6
+
   useEffect(() => {
-    // Si item.sound viene vacío (p.ej día 6 sin sonidos), no reproducimos.
-    if (item.sound) playSound(item.sound, muted, 0.85);
+    if (item.sound && !isImmersive) playSound(item.sound, muted, 0.85);
     return () => stopSound();
-  }, [item.sound, muted]);
+  }, [item.sound, muted, isImmersive]);
 
   const onWin = () => {
     setWins((w) => w + 1);
     confetti({ particleCount: 70, spread: 65, origin: { y: 0.35 } });
-    if (item.day !== 6) playSound("/sounds/unlock.mp3", muted, 0.8); // día 6 sin sonidos
+    if (!isImmersive) playSound("/sounds/unlock.mp3", muted, 0.8);
   };
 
   const Game = useMemo(() => {
@@ -61,7 +62,7 @@ export default function DayModal({
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/30 p-3 md:p-6"
+      className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/30 p-2 md:p-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -72,9 +73,9 @@ export default function DayModal({
     >
       <motion.div
         onMouseDown={(e) => e.stopPropagation()}
-        className={`w-full overflow-hidden rounded-[26px] bg-white shadow-soft max-h-[88vh] md:max-h-[86vh] flex flex-col ${
-          item.day === 6 ? "max-w-5xl" : "max-w-2xl"
-        }`}
+        className={`w-full overflow-hidden rounded-[26px] bg-white shadow-soft flex flex-col
+          ${isImmersive ? "max-w-6xl h-[92vh] md:h-[88vh]" : "max-w-2xl max-h-[88vh] md:max-h-[86vh]"}
+        `}
         initial={{ y: 40, scale: 0.98, opacity: 0 }}
         animate={{ y: 0, scale: 1, opacity: 1 }}
         exit={{ y: 30, scale: 0.98, opacity: 0 }}
@@ -82,22 +83,46 @@ export default function DayModal({
       >
         {/* Header */}
         <div
-          className={`relative p-5 md:p-6 bg-gradient-to-br ${item.accentGradient}`}
+          className={`relative bg-gradient-to-br ${item.accentGradient} ${
+            isImmersive ? "p-4 md:p-5" : "p-5 md:p-6"
+          }`}
         >
           <div className="relative flex items-start justify-between gap-4">
             <div>
               <div className="text-xs font-semibold text-zinc-700">
                 Día {item.day}
               </div>
-              <h2 className="mt-1 text-2xl md:text-3xl font-semibold">
+
+              <h2
+                className={`mt-1 font-semibold ${
+                  isImmersive ? "text-2xl md:text-3xl" : "text-2xl md:text-3xl"
+                }`}
+              >
                 {item.title}
               </h2>
-              <p className="mt-2 text-sm text-zinc-700 max-w-xl">
-                {item.description}
-              </p>
-              <div className="mt-3 text-xs text-zinc-700">
-                Victorias: <span className="font-semibold">{wins}</span>
-              </div>
+
+              {!isImmersive && (
+                <>
+                  <p className="mt-2 text-sm text-zinc-700 max-w-xl">
+                    {item.description}
+                  </p>
+                  <div className="mt-3 text-xs text-zinc-700">
+                    Victorias: <span className="font-semibold">{wins}</span>
+                  </div>
+                  <motion.div
+                    className="mt-4 text-5xl md:text-6xl"
+                    initial={{ scale: 0.8, rotate: -6, opacity: 0 }}
+                    animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 220,
+                      damping: 14,
+                    }}
+                  >
+                    {item.emoji}
+                  </motion.div>
+                </>
+              )}
             </div>
 
             <button
@@ -110,21 +135,20 @@ export default function DayModal({
               Cerrar ✕
             </button>
           </div>
-
-          <motion.div
-            className="mt-4 text-5xl md:text-6xl"
-            initial={{ scale: 0.8, rotate: -6, opacity: 0 }}
-            animate={{ scale: 1, rotate: 0, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 220, damping: 14 }}
-          >
-            {item.emoji}
-          </motion.div>
         </div>
 
         {/* Body */}
-        <div className="p-5 md:p-7 overflow-y-auto">
-          {/* ✅ Día 1 (Jirafa) */}
-          {item.day === 1 ? (
+        <div
+          className={`flex-1 ${
+            isImmersive ? "overflow-hidden p-0" : "overflow-y-auto p-5 md:p-7"
+          }`}
+        >
+          {/* ✅ Día 6 = FULL SCREEN EXPERIENCE */}
+          {item.day === 6 ? (
+            <div className="h-full">
+              <Day06ImanolExperience onWin={onWin} />
+            </div>
+          ) : item.day === 1 ? (
             <div className="space-y-4">
               <Day01Giraffe />
               <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
@@ -188,11 +212,6 @@ export default function DayModal({
                 />
               </div>
             </div>
-          ) : item.day === 6 ? (
-            // ✅ Día 6 = EXPERIENCIA TOTAL (SIN MINI JUEGO EXTRA)
-            <div className="space-y-4">
-              <Day06ImanolExperience onWin={onWin} />
-            </div>
           ) : item.day === 7 ? (
             <div className="space-y-4">
               <Day07Flowers />
@@ -213,7 +232,6 @@ export default function DayModal({
               {Game}
             </div>
           ) : (
-            /* Día final */
             <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-5">
               <div className="text-sm font-semibold">El sobre final 💌</div>
               <p className="mt-2 text-sm text-zinc-700 leading-relaxed">
