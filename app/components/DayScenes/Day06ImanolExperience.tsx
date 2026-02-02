@@ -25,7 +25,7 @@ export default function Day06ImanolExperience({
       <div className="relative overflow-hidden rounded-[28px] border border-zinc-200 bg-white shadow-soft">
         {/* HERO (full / cinematic) */}
         <div
-          className={`relative h-[62vh] min-h-[520px] md:h-[66vh] bg-gradient-to-br ${gradient}`}
+          className={`relative h-[62vh] min-h-[480px] md:h-[66vh] bg-gradient-to-br ${gradient}`}
         >
           {/* soft blobs */}
           <motion.div
