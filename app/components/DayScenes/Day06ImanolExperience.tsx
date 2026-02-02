@@ -161,7 +161,7 @@ export default function Day06ImanolExperience({ onWin }: { onWin: () => void }) 
                         onClick={() => setStep(1)}
                         className="rounded-2xl bg-zinc-900 text-white px-4 py-3 text-sm font-semibold"
                       >
-                        Repetir acto 1
+                        Repetir
                       </button>
                     </div>
                   </div>

@@ -199,10 +199,6 @@ export default function Day06CleanReveal({
           />
         )}
       </div>
-
-      <div className="px-4 pb-4 text-[11px] text-zinc-600">
-        Tip: en móvil usa el dedo; en PC, click y arrastra.
-      </div>
     </div>
   );
 }
