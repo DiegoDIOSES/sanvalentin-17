@@ -16,7 +16,7 @@ export default function Day06Imanol() {
             Estar con Imanol 🤍
           </div>
           <div className="mt-1 text-xs md:text-sm text-zinc-700 max-w-md">
-            Hoy no se corre, no se compite… hoy solo se siente. (Sin sonidos)
+            Hoy no se corre, no se compite… hoy solo se siente.
           </div>
         </div>
 

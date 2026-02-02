@@ -213,10 +213,6 @@ export default function DayModal({
                 <div className="h-[62vh] min-h-[520px] max-h-[760px]">
                   <Day06ImanolExperience onWin={onWin} />
                 </div>
-
-                <div className="text-[11px] text-zinc-600 text-center">
-                  Sin sonidos • solo sensación.
-                </div>
               </div>
             ) : item.day === 7 ? (
               <div className="space-y-4">
@@ -278,7 +274,7 @@ export default function DayModal({
         </motion.div>
       </motion.div>
 
-      {/* ✅ Popup “falta algo” */}
+      {/* ✅ Popup “falta algo” 
       <Day06OneMoreThing
         open={showDay6Secret}
         imageSrc="/images/day06-imanol.jpg"
@@ -287,7 +283,7 @@ export default function DayModal({
           setDay6SecretDone(true);
           setShowDay6Secret(false);
         }}
-      />
+      />*/}
     </>
   );
 }

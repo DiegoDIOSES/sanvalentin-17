@@ -144,7 +144,7 @@ export default function Day06GiggleBubbles({ onWin }: { onWin: () => void }) {
 
         {/* área de juego */}
         <div className="relative h-[260px] md:h-[300px] rounded-2xl border border-zinc-200 bg-white/70 backdrop-blur overflow-hidden">
-          {/* micro partículas de fondo (sin sonido, solo vibe) */}
+          {/* micro partículas de fondo */}
           <div className="absolute inset-0 opacity-[0.35]">
             {Array.from({ length: 18 }).map((_, i) => (
               <motion.div

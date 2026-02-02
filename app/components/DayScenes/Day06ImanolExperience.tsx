@@ -79,10 +79,6 @@ export default function Day06ImanolExperience({ onWin }: { onWin: () => void }) 
                         Entrar al momento →
                       </button>
                     </div>
-
-                    <div className="mt-3 text-[11px] text-zinc-600">
-                      (Sin sonidos • solo sensación)
-                    </div>
                   </div>
                 </motion.div>
               )}
@@ -187,10 +183,6 @@ export default function Day06ImanolExperience({ onWin }: { onWin: () => void }) 
             </div>
           </div>
         </div>
-      </div>
-
-      <div className="mt-3 text-[11px] text-zinc-600 text-center shrink-0">
-        Sin sonidos • solo sensación.
       </div>
     </div>
   );
