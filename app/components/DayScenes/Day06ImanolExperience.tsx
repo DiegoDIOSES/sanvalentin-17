@@ -1,56 +1,23 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Day06ConstellationCinematic from "../MicroGames/Day06ConstellationCinematic";
 import Day06CleanReveal from "../MicroGames/Day06CleanReveal";
-import Day06OneMoreThing from "../MicroGames/Day06OneMoreThing";
 
 type Step = 1 | 2 | 3;
-
-const LS_SECRET_DONE = "day06_secret_done";
 
 export default function Day06ImanolExperience({ onWin }: { onWin: () => void }) {
   const [step, setStep] = useState<Step>(1);
   const [completed, setCompleted] = useState(false);
 
-  // “One more thing”
-  const [showOneMore, setShowOneMore] = useState(false);
-  const [secretDone, setSecretDone] = useState(false);
-
   const gradient = useMemo(() => "from-amber-50 via-rose-50 to-white", []);
-
-  // Load persisted secret state
-  useEffect(() => {
-    try {
-      const v = localStorage.getItem(LS_SECRET_DONE);
-      if (v === "1") setSecretDone(true);
-    } catch {}
-  }, []);
-
-  const markSecretDone = () => {
-    setSecretDone(true);
-    try {
-      localStorage.setItem(LS_SECRET_DONE, "1");
-    } catch {}
-  };
-
-  const guardClose = (next: () => void) => {
-    // Si está en Acto 3 y aún no hizo el “secreto”, lo interceptamos
-    if (step === 3 && !secretDone) {
-      setShowOneMore(true);
-      return;
-    }
-    next();
-  };
 
   return (
     <div className="h-full min-h-0 flex flex-col">
       <div className="flex-1 min-h-0">
         <div className="relative h-full min-h-0 overflow-hidden rounded-[28px] border border-zinc-200 bg-white shadow-soft">
-          {/* HERO */}
           <div className={`relative h-full min-h-0 bg-gradient-to-br ${gradient}`}>
-            {/* blobs */}
             <motion.div
               className="absolute -top-32 -right-28 h-96 w-96 rounded-full bg-amber-200/45 blur-3xl"
               animate={{ x: [0, -10, 0], y: [0, 10, 0] }}
@@ -62,7 +29,6 @@ export default function Day06ImanolExperience({ onWin }: { onWin: () => void }) 
               transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
             />
 
-            {/* grain */}
             <div className="pointer-events-none absolute inset-0 opacity-[0.07] mix-blend-multiply bg-[radial-gradient(circle_at_1px_1px,rgba(0,0,0,0.45)_1px,transparent_0)] [background-size:14px_14px]" />
 
             {/* top pills */}
@@ -72,19 +38,13 @@ export default function Day06ImanolExperience({ onWin }: { onWin: () => void }) 
                   Día 6 • <span className="font-semibold">Estar con Imanol</span>
                 </div>
 
-                <div className="rounded-2xl bg-white/70 backdrop-blur border border-white/60 px-4 py-2 text-xs text-zinc-700 shadow-soft flex items-center gap-2">
-                  <span>{step === 1 ? "Acto 1" : step === 2 ? "Acto 2" : "Acto 3"}</span>
-                  {secretDone && (
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-900 text-white">
-                      secreto ✓
-                    </span>
-                  )}
+                <div className="rounded-2xl bg-white/70 backdrop-blur border border-white/60 px-4 py-2 text-xs text-zinc-700 shadow-soft">
+                  {step === 1 ? "Acto 1" : step === 2 ? "Acto 2" : "Acto 3"}
                 </div>
               </div>
             </div>
 
             <AnimatePresence mode="wait">
-              {/* STEP 1 */}
               {step === 1 && (
                 <motion.div
                   key="step1"
@@ -121,24 +81,16 @@ export default function Day06ImanolExperience({ onWin }: { onWin: () => void }) 
                     </div>
 
                     <div className="mt-3 text-[11px] text-zinc-600">
-                      (Día importante • experiencia completa)
+                      (Sin sonidos • solo sensación)
                     </div>
                   </div>
                 </motion.div>
               )}
 
-              {/* STEP 2 */}
               {step === 2 && (
                 <motion.div
                   key="step2"
-                  className="
-                    absolute inset-0
-                    pt-20 md:pt-24
-                    pb-[110px] md:pb-[120px]
-                    px-4 md:px-8
-                    overflow-y-auto
-                    z-10
-                  "
+                  className="absolute inset-0 pt-20 md:pt-24 pb-[110px] md:pb-[120px] px-4 md:px-8 overflow-y-auto z-10"
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
@@ -151,7 +103,7 @@ export default function Day06ImanolExperience({ onWin }: { onWin: () => void }) 
                         Enciende cada luz ✨
                       </div>
                       <div className="mt-2 text-sm text-zinc-700">
-                        Toca los puntos. Verás cómo se conectan.
+                        Toca los puntos. Cada uno es un “momento”.
                       </div>
                     </div>
 
@@ -170,18 +122,10 @@ export default function Day06ImanolExperience({ onWin }: { onWin: () => void }) 
                 </motion.div>
               )}
 
-              {/* STEP 3 */}
               {step === 3 && (
                 <motion.div
                   key="step3"
-                  className="
-                    absolute inset-0
-                    pt-20 md:pt-24
-                    pb-[110px] md:pb-[120px]
-                    px-4 md:px-8
-                    overflow-y-auto
-                    z-10
-                  "
+                  className="absolute inset-0 pt-20 md:pt-24 pb-[110px] md:pb-[120px] px-4 md:px-8 overflow-y-auto z-10"
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
@@ -189,12 +133,12 @@ export default function Day06ImanolExperience({ onWin }: { onWin: () => void }) 
                 >
                   <div className="mx-auto max-w-4xl">
                     <div className="text-center">
-                      <div className="text-xs text-zinc-600">Carta escondida</div>
+                      <div className="text-xs text-zinc-600">Carta</div>
                       <div className="mt-1 text-xl md:text-2xl font-semibold text-zinc-900">
-                        Limpia para descubrir 🤍
+                        Limpia todo el panel 🤍
                       </div>
                       <div className="mt-2 text-sm text-zinc-700">
-                        Pasa el cursor o tu dedo para “limpiar” la tarjeta.
+                        Esta sí se descubre completa.
                       </div>
                     </div>
 
@@ -203,34 +147,23 @@ export default function Day06ImanolExperience({ onWin }: { onWin: () => void }) 
                         coverColor="#f4c5cf"
                         message={`Me gusta cómo te ves cuando estás con Imanol.\n\nEs una versión tuya tranquila, real…\n\ny muy bonita.`}
                         subtitle="(Y sí, se nota.)"
-                        onReveal={() => {
-                          // opcional
-                          // onWin();
-                        }}
                       />
                     </div>
 
                     <div className="mt-6 flex justify-center gap-2">
                       <button
-                        onClick={() => guardClose(() => setStep(2))}
+                        onClick={() => setStep(2)}
                         className="rounded-2xl bg-white border border-zinc-200 px-4 py-3 text-sm font-semibold"
                       >
                         Volver a mirar ✨
                       </button>
-
                       <button
-                        onClick={() => guardClose(() => setStep(1))}
+                        onClick={() => setStep(1)}
                         className="rounded-2xl bg-zinc-900 text-white px-4 py-3 text-sm font-semibold"
                       >
                         Repetir acto 1
                       </button>
                     </div>
-
-                    {!secretDone && (
-                      <div className="mt-3 text-center text-[11px] text-zinc-600">
-                        (Tip: si intentas salir… puede que falte un último detalle 👀)
-                      </div>
-                    )}
                   </div>
                 </motion.div>
               )}
@@ -244,10 +177,7 @@ export default function Day06ImanolExperience({ onWin }: { onWin: () => void }) 
                   <span className="font-semibold">{step}/3</span>
                 </div>
                 <div className="mt-2 h-2 rounded-full bg-zinc-200 overflow-hidden">
-                  <div
-                    className="h-full bg-zinc-900"
-                    style={{ width: `${(step / 3) * 100}%` }}
-                  />
+                  <div className="h-full bg-zinc-900" style={{ width: `${(step / 3) * 100}%` }} />
                 </div>
               </div>
             </div>
@@ -255,21 +185,9 @@ export default function Day06ImanolExperience({ onWin }: { onWin: () => void }) 
         </div>
       </div>
 
-      {/* note */}
       <div className="mt-3 text-[11px] text-zinc-600 text-center shrink-0">
         Sin sonidos • solo sensación.
       </div>
-
-      {/* One more thing popup */}
-      <Day06OneMoreThing
-        open={showOneMore}
-        imageSrc="/images/day06-imanol.jpg"
-        onClose={() => setShowOneMore(false)}
-        onDone={() => {
-          markSecretDone();
-          setShowOneMore(false);
-        }}
-      />
     </div>
   );
 }
