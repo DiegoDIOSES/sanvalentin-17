@@ -145,8 +145,12 @@ export default function Day06ImanolExperience({ onWin }: { onWin: () => void }) 
                     <div className="mt-6">
                       <Day06CleanReveal
                         coverColor="#f4c5cf"
+                        backgroundImageSrc="/images/day06-imanol.jpg"
                         message={`Me gusta cómo te ves cuando estás con Imanol.\n\nEs una versión tuya tranquila, real…\n\ny muy bonita.`}
                         subtitle="(Y sí, se nota.)"
+                        onReveal={() => {
+                          // aquí puedes marcar algo si quieres
+                        }}
                       />
                     </div>
 

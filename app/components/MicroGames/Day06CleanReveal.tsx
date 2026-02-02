@@ -1,7 +1,7 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 
 function clamp(n: number, a: number, b: number) {
   return Math.max(a, Math.min(b, n));
@@ -12,200 +12,196 @@ export default function Day06CleanReveal({
   message,
   subtitle,
   onReveal,
+  backgroundImageSrc, // 👈 nueva: imagen de fondo (normal)
 }: {
   coverColor?: string;
   message: string;
   subtitle?: string;
   onReveal?: () => void;
+  backgroundImageSrc?: string;
 }) {
-  const wrapRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
+  const wrapRef = useRef<HTMLDivElement | null>(null);
 
-  const [revealed, setRevealed] = useState(false);
-  const [progress, setProgress] = useState(0); // 0..1
-  const [hint, setHint] = useState("Limpia todo el panel…");
+  const [pct, setPct] = useState(0);
+  const [done, setDone] = useState(false);
+  const [drawing, setDrawing] = useState(false);
 
-  const THRESHOLD = 0.92; // casi todo
+  const W = 900;
+  const H = 520;
 
-  const hintText = useMemo(() => {
-    if (revealed) return "Listo 🤍";
-    if (progress < 0.25) return "Empieza suave…";
-    if (progress < 0.55) return "Sigue…";
-    if (progress < 0.75) return "Ya casi…";
-    if (progress < 0.88) return "Falta un poquito…";
-    return "Solo un poco más…";
-  }, [progress, revealed]);
+  const messages = useMemo(
+    () => ["Espera…", "Ya casi…", "Solo un poquito…", "Falta nada…"],
+    [],
+  );
+  const [hint, setHint] = useState(messages[0]);
 
-  useEffect(() => setHint(hintText), [hintText]);
-
-  // init canvas
   useEffect(() => {
-    const wrap = wrapRef.current;
-    const canvas = canvasRef.current;
-    if (!wrap || !canvas) return;
+    if (done) return;
+    const id = window.setInterval(() => {
+      setHint((h) => {
+        const idx = messages.indexOf(h);
+        return messages[(idx + 1) % messages.length];
+      });
+    }, 1200);
+    return () => window.clearInterval(id);
+  }, [done, messages]);
 
-    const dpr = Math.max(1, window.devicePixelRatio || 1);
+  useEffect(() => {
+    const c = canvasRef.current;
+    if (!c) return;
 
-    const resize = () => {
-      const rect = wrap.getBoundingClientRect();
-      canvas.width = Math.floor(rect.width * dpr);
-      canvas.height = Math.floor(rect.height * dpr);
-      canvas.style.width = `${rect.width}px`;
-      canvas.style.height = `${rect.height}px`;
+    c.width = W;
+    c.height = H;
+    const ctx = c.getContext("2d");
+    if (!ctx) return;
 
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-      ctxRef.current = ctx;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = coverColor;
+    ctx.fillRect(0, 0, W, H);
 
-      // cover layer
-      ctx.globalCompositeOperation = "source-over";
-      ctx.fillStyle = coverColor;
-      ctx.fillRect(0, 0, rect.width, rect.height);
+    // blend mode borrador
+    ctx.globalCompositeOperation = "destination-out";
 
-      // subtle highlight
-      ctx.globalAlpha = 0.08;
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, rect.width, rect.height);
-      ctx.globalAlpha = 1;
-
-      setProgress(0);
-      setRevealed(false);
-    };
-
-    resize();
-    const ro = new ResizeObserver(resize);
-    ro.observe(wrap);
-    return () => ro.disconnect();
+    setPct(0);
+    setDone(false);
   }, [coverColor]);
 
-  const scratchAt = (x: number, y: number) => {
-    const canvas = canvasRef.current;
-    const wrap = wrapRef.current;
-    const ctx = ctxRef.current;
-    if (!canvas || !wrap || !ctx || revealed) return;
+  const calcPct = () => {
+    const c = canvasRef.current;
+    if (!c) return 0;
+    const ctx = c.getContext("2d", { willReadFrequently: true });
+    if (!ctx) return 0;
 
-    const rect = wrap.getBoundingClientRect();
-    const lx = clamp(x - rect.left, 0, rect.width);
-    const ly = clamp(y - rect.top, 0, rect.height);
-
-    // erase big brush
-    ctx.globalCompositeOperation = "destination-out";
-    ctx.beginPath();
-    ctx.arc(lx, ly, 34, 0, Math.PI * 2);
-    ctx.fill();
-
-    // measure progress (throttle-ish)
-    // Nota: para evitar “paradas raras”, medimos en áreas grandes
-    const img = ctx.getImageData(0, 0, rect.width, rect.height);
+    const img = ctx.getImageData(0, 0, c.width, c.height);
     const data = img.data;
+
     let cleared = 0;
-    const step = 24; // sample
-    for (let i = 3; i < data.length; i += 4 * step) {
+    // contamos alpha = 0 como limpio
+    for (let i = 3; i < data.length; i += 4) {
       if (data[i] === 0) cleared++;
     }
-    const total = Math.floor(data.length / (4 * step));
-    const p = total > 0 ? cleared / total : 0;
-
-    setProgress(p);
-
-    if (p >= THRESHOLD && !revealed) {
-      setRevealed(true);
-      onReveal?.();
-    }
+    const total = data.length / 4;
+    return cleared / total;
   };
 
-  // pointer handling
-  useEffect(() => {
+  const finish = () => {
+    if (done) return;
+    setDone(true);
+    setPct(1);
+    onReveal?.();
+  };
+
+  const eraseAt = (clientX: number, clientY: number) => {
+    const c = canvasRef.current;
     const wrap = wrapRef.current;
-    if (!wrap) return;
+    if (!c || !wrap) return;
 
-    let down = false;
+    const rect = wrap.getBoundingClientRect();
+    const x = ((clientX - rect.left) / rect.width) * W;
+    const y = ((clientY - rect.top) / rect.height) * H;
 
-    const onDown = (e: PointerEvent) => {
-      down = true;
-      (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-      scratchAt(e.clientX, e.clientY);
-    };
+    const ctx = c.getContext("2d");
+    if (!ctx) return;
 
-    const onMove = (e: PointerEvent) => {
-      if (!down) return;
-      scratchAt(e.clientX, e.clientY);
-    };
+    ctx.beginPath();
+    ctx.arc(x, y, 42, 0, Math.PI * 2); // radio más grande y uniforme
+    ctx.fill();
 
-    const onUp = () => {
-      down = false;
-    };
+    const p = clamp(calcPct(), 0, 1);
+    setPct(p);
 
-    wrap.addEventListener("pointerdown", onDown);
-    wrap.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerup", onUp);
-
-    return () => {
-      wrap.removeEventListener("pointerdown", onDown);
-      wrap.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerup", onUp);
-    };
-  }, [revealed]);
+    // ✅ auto-complete desde 90%
+    if (p >= 0.9) finish();
+  };
 
   return (
     <div className="rounded-[26px] border border-zinc-200 bg-white shadow-soft overflow-hidden">
-      <div className="p-4 md:p-5">
-        <div className="flex items-center justify-between">
-          <div className="text-xs text-zinc-600">Carta</div>
-          <div className="text-[11px] px-3 py-1 rounded-full border border-zinc-200 bg-white text-zinc-700">
-            {Math.round(progress * 100)}%
-          </div>
+      <div className="p-4 flex items-center justify-between">
+        <div className="text-sm font-semibold text-zinc-900">Carta</div>
+
+        <div className="flex items-center gap-2">
+          {!done && (
+            <div className="text-xs text-zinc-600 rounded-full border border-zinc-200 px-3 py-1">
+              {Math.round(pct * 100)}%
+            </div>
+          )}
+          {!done && pct >= 0.85 && (
+            <button
+              onClick={finish}
+              className="text-xs font-semibold rounded-full bg-zinc-900 text-white px-4 py-2"
+            >
+              Terminar ✨
+            </button>
+          )}
         </div>
       </div>
 
-      <div className="px-4 md:px-5 pb-5">
-        <div
-          ref={wrapRef}
-          className="relative rounded-[22px] border border-zinc-200 overflow-hidden h-[320px] md:h-[360px] bg-zinc-50"
-        >
-          {/* contenido debajo */}
-          <div className="absolute inset-0 grid place-items-center px-6">
-            <div className="text-center max-w-xl">
-              <div className="text-lg md:text-xl font-semibold text-zinc-900 whitespace-pre-line">
-                {message}
-              </div>
-              {subtitle && (
-                <div className="mt-3 text-sm text-zinc-600">{subtitle}</div>
-              )}
+      <div
+        ref={wrapRef}
+        className="relative"
+        style={{ aspectRatio: `${W} / ${H}` }}
+      >
+        {/* Fondo: borroso mientras no termine */}
+        <div className="absolute inset-0">
+          {backgroundImageSrc ? (
+            <img
+              src={backgroundImageSrc}
+              alt="fondo"
+              className={`h-full w-full object-cover ${
+                done ? "blur-0" : "blur-2xl"
+              } transition-[filter] duration-500`}
+            />
+          ) : (
+            <div className="h-full w-full bg-gradient-to-br from-zinc-50 to-rose-50" />
+          )}
+
+          {/* capa suave para lectura */}
+          <div className="absolute inset-0 bg-white/40" />
+        </div>
+
+        {/* Texto centrado */}
+        <div className="absolute inset-0 grid place-items-center p-8">
+          <div className="max-w-xl text-center">
+            <div className="text-xl md:text-2xl font-semibold text-zinc-900 whitespace-pre-line leading-relaxed">
+              {message}
             </div>
-          </div>
+            {subtitle && (
+              <div className="mt-3 text-sm text-zinc-700">{subtitle}</div>
+            )}
 
-          {/* overlay scratch */}
-          <canvas
-            ref={canvasRef}
-            className="absolute inset-0 touch-none"
-          />
-
-          {/* hint */}
-          <AnimatePresence>
-            {!revealed && (
+            {!done && (
               <motion.div
-                className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-3"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
+                className="mt-6 text-sm font-semibold text-zinc-800"
+                animate={{ opacity: [0.6, 1, 0.6] }}
+                transition={{ duration: 1.2, repeat: Infinity }}
               >
-                <div className="rounded-2xl bg-white/80 backdrop-blur border border-white/60 px-4 py-2 text-[12px] text-zinc-700 shadow-soft">
-                  {hint}
-                </div>
-                <div className="rounded-2xl bg-white/80 backdrop-blur border border-white/60 px-4 py-2 text-[12px] text-zinc-700 shadow-soft">
-                  Raspa ✨
-                </div>
+                {hint}
               </motion.div>
             )}
-          </AnimatePresence>
+          </div>
         </div>
 
-        <div className="mt-3 text-[11px] text-zinc-600">
-          Tip: en móvil usa el dedo; en PC, click y arrastra.
-        </div>
+        {/* Canvas raspado */}
+        {!done && (
+          <canvas
+            ref={canvasRef}
+            className="absolute inset-0 h-full w-full touch-none"
+            onPointerDown={(e) => {
+              setDrawing(true);
+              eraseAt(e.clientX, e.clientY);
+            }}
+            onPointerMove={(e) => {
+              if (!drawing) return;
+              eraseAt(e.clientX, e.clientY);
+            }}
+            onPointerUp={() => setDrawing(false)}
+            onPointerCancel={() => setDrawing(false)}
+          />
+        )}
+      </div>
+
+      <div className="px-4 pb-4 text-[11px] text-zinc-600">
+        Tip: en móvil usa el dedo; en PC, click y arrastra.
       </div>
     </div>
   );

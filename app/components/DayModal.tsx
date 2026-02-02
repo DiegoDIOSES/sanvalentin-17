@@ -29,8 +29,6 @@ import Day06OneMoreThing from "./MicroGames/Day06OneMoreThing";
 import Day07Flowers from "./DayScenes/Day07Flowers";
 import Day07GardenBloom from "./MicroGames/Day07GardenBloom";
 
-const LS_DAY06_SECRET_DONE = "day06_secret_done";
-
 export default function DayModal({
   item,
   onClose,
@@ -43,19 +41,20 @@ export default function DayModal({
   const [wins, setWins] = useState(0);
   const isFinal = item.day === 17;
 
-  // Day 6 secret gate
+  // Día 6: secreto se puede repetir cada vez que abras el modal
   const [showDay6Secret, setShowDay6Secret] = useState(false);
   const [day6SecretDone, setDay6SecretDone] = useState(false);
 
+  // Reset del estado del Día 6 cada vez que abres el modal en Día 6
   useEffect(() => {
-    try {
-      setDay6SecretDone(localStorage.getItem(LS_DAY06_SECRET_DONE) === "1");
-    } catch {
+    if (item.day === 6) {
+      setShowDay6Secret(false);
       setDay6SecretDone(false);
     }
-  }, []);
+  }, [item.day]);
 
   useEffect(() => {
+    // OJO: si día 6 NO quieres sonidos, deja item.sound vacío en days.ts para ese día.
     playSound(item.sound, muted, 0.85);
     return () => stopSound();
   }, [item.sound, muted]);
@@ -73,8 +72,8 @@ export default function DayModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [item.microGame, muted]);
 
-  // Close guard: Day 6 cannot close until secret is done
   const guardedClose = () => {
+    // Bloqueo SOLO para Día 6 mientras no completó el secreto
     if (item.day === 6 && !day6SecretDone) {
       setShowDay6Secret(true);
       return;
@@ -94,7 +93,13 @@ export default function DayModal({
       >
         <motion.div
           onMouseDown={(e) => e.stopPropagation()}
-          className="w-full max-w-2xl overflow-hidden rounded-[26px] bg-white shadow-soft max-h-[85vh] md:max-h-[80vh] flex flex-col"
+          className="
+            w-full max-w-2xl
+            overflow-hidden rounded-[26px]
+            bg-white shadow-soft
+            max-h-[88vh] md:max-h-[84vh]
+            flex flex-col
+          "
           initial={{ y: 40, scale: 0.98, opacity: 0 }}
           animate={{ y: 0, scale: 1, opacity: 1 }}
           exit={{ y: 30, scale: 0.98, opacity: 0 }}
@@ -139,8 +144,7 @@ export default function DayModal({
           </div>
 
           {/* Body */}
-          <div className="p-5 md:p-7 overflow-y-auto">
-            {/* Día 1 */}
+          <div className="p-4 md:p-6 overflow-y-auto flex-1">
             {item.day === 1 ? (
               <div className="space-y-4">
                 <Day01Giraffe />
@@ -170,8 +174,7 @@ export default function DayModal({
                 <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
                   <div className="text-sm font-semibold">Mini juego</div>
                   <p className="mt-1 text-xs text-zinc-600">
-                    Encuentra el tono vino perfecto. No es rapidez… es sensación
-                    🍷
+                    Encuentra el tono vino perfecto 🍷
                   </p>
                   <Day03FindWineTone onWin={onWin} muted={muted} />
                 </div>
@@ -182,7 +185,7 @@ export default function DayModal({
                 <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
                   <div className="text-sm font-semibold">Mini juego</div>
                   <p className="mt-1 text-xs text-zinc-600">
-                    Rompecabezas de 15 piezas. Cada vez se mezcla distinto 🧩
+                    Rompecabezas de 15 piezas 🧩
                   </p>
                   <Day04TiniPuzzle
                     onWin={onWin}
@@ -197,7 +200,7 @@ export default function DayModal({
                 <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
                   <div className="text-sm font-semibold">Mini juego</div>
                   <p className="mt-1 text-xs text-zinc-600">
-                    Enciende la ciudad y desbloquea la canción 🌆✨
+                    Enciende la ciudad y abre Spotify 🌆✨
                   </p>
                   <Day05LightCity
                     onWin={onWin}
@@ -207,16 +210,15 @@ export default function DayModal({
                 </div>
               </div>
             ) : item.day === 6 ? (
+              // ✅ Día 6: contenedor con altura real para que NO colapse
               <div className="space-y-4">
-                {/* Día 6 es experiencia completa: sin caja "mini juego" */}
-                <Day06ImanolExperience onWin={onWin} />
+                <div className="min-h-[560px] md:min-h-[640px]">
+                  <Day06ImanolExperience onWin={onWin} />
+                </div>
 
-                {/* mini hint abajo, opcional */}
-                {!day6SecretDone && (
-                  <div className="text-[11px] text-zinc-600 text-center">
-                    Tip: cuando quieras cerrar… todavía falta algo 🤍
-                  </div>
-                )}
+                <div className="text-[11px] text-zinc-600 text-center">
+                  Sin sonidos • solo sensación.
+                </div>
               </div>
             ) : item.day === 7 ? (
               <div className="space-y-4">
@@ -224,7 +226,7 @@ export default function DayModal({
                 <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
                   <div className="text-sm font-semibold">Mini juego</div>
                   <p className="mt-1 text-xs text-zinc-600">
-                    5 semillas, 5 gestos distintos. Haz florecer el jardín 🌸
+                    5 semillas, 5 gestos. Haz florecer el jardín 🌸
                   </p>
                   <Day07GardenBloom onWin={onWin} muted={muted} />
                 </div>
@@ -278,16 +280,14 @@ export default function DayModal({
         </motion.div>
       </motion.div>
 
-      {/* Day 6 Secret Popup (one-time) */}
+      {/* ✅ Popup “falta algo” (se puede repetir) */}
       <Day06OneMoreThing
         open={showDay6Secret}
         imageSrc="/images/day06-imanol.jpg"
         onClose={() => setShowDay6Secret(false)}
         onDone={() => {
           setDay6SecretDone(true);
-          try {
-            localStorage.setItem(LS_DAY06_SECRET_DONE, "1");
-          } catch {}
+          setShowDay6Secret(false);
         }}
       />
     </>
