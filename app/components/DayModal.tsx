@@ -24,11 +24,9 @@ import Day05BuenosAires from "./DayScenes/Day05BuenosAires";
 import Day05LightCity from "./MicroGames/Day05LightCity";
 
 import Day06ImanolExperience from "./DayScenes/Day06ImanolExperience";
-import Day06GiggleBubbles from "./MicroGames/Day06Constellation";
 
 import Day07Flowers from "./DayScenes/Day07Flowers";
 import Day07GardenBloom from "./MicroGames/Day07GardenBloom";
-import Day06Constellation from "./MicroGames/Day06Constellation";
 
 export default function DayModal({
   item,
@@ -43,14 +41,15 @@ export default function DayModal({
   const isFinal = item.day === 17;
 
   useEffect(() => {
-    playSound(item.sound, muted, 0.85);
+    // Si item.sound viene vacío (p.ej día 6 sin sonidos), no reproducimos.
+    if (item.sound) playSound(item.sound, muted, 0.85);
     return () => stopSound();
   }, [item.sound, muted]);
 
   const onWin = () => {
     setWins((w) => w + 1);
     confetti({ particleCount: 70, spread: 65, origin: { y: 0.35 } });
-    playSound("/sounds/unlock.mp3", muted, 0.8);
+    if (item.day !== 6) playSound("/sounds/unlock.mp3", muted, 0.8); // día 6 sin sonidos
   };
 
   const Game = useMemo(() => {
@@ -58,7 +57,7 @@ export default function DayModal({
     if (item.microGame === "hold") return <HoldGame onWin={onWin} />;
     return <DragGame onWin={onWin} />;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [item.microGame, muted]);
+  }, [item.microGame]);
 
   return (
     <motion.div
@@ -73,7 +72,9 @@ export default function DayModal({
     >
       <motion.div
         onMouseDown={(e) => e.stopPropagation()}
-        className="w-full max-w-2xl overflow-hidden rounded-[26px] bg-white shadow-soft max-h-[85vh] md:max-h-[80vh] flex flex-col"
+        className={`w-full overflow-hidden rounded-[26px] bg-white shadow-soft max-h-[88vh] md:max-h-[86vh] flex flex-col ${
+          item.day === 6 ? "max-w-5xl" : "max-w-2xl"
+        }`}
         initial={{ y: 40, scale: 0.98, opacity: 0 }}
         animate={{ y: 0, scale: 1, opacity: 1 }}
         exit={{ y: 30, scale: 0.98, opacity: 0 }}
@@ -122,7 +123,7 @@ export default function DayModal({
 
         {/* Body */}
         <div className="p-5 md:p-7 overflow-y-auto">
-          {/* ✅ Día 1 personalizado (Jirafa) */}
+          {/* ✅ Día 1 (Jirafa) */}
           {item.day === 1 ? (
             <div className="space-y-4">
               <Day01Giraffe />
@@ -152,8 +153,7 @@ export default function DayModal({
               <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
                 <div className="text-sm font-semibold">Mini juego</div>
                 <p className="mt-1 text-xs text-zinc-600">
-                  Encuentra el tono vino perfecto. No es rapidez… es sensación
-                  🍷
+                  Encuentra el tono vino perfecto. No es rapidez… es sensación 🍷
                 </p>
                 <Day03FindWineTone onWin={onWin} muted={muted} />
               </div>
@@ -179,7 +179,7 @@ export default function DayModal({
               <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
                 <div className="text-sm font-semibold">Mini juego</div>
                 <p className="mt-1 text-xs text-zinc-600">
-                  Enciende la ciudad y desbloquea el videoclip 🌆✨
+                  Enciende la ciudad y te llevamos a escuchar esa melodía 🌆✨
                 </p>
                 <Day05LightCity
                   onWin={onWin}
@@ -189,17 +189,9 @@ export default function DayModal({
               </div>
             </div>
           ) : item.day === 6 ? (
+            // ✅ Día 6 = EXPERIENCIA TOTAL (SIN MINI JUEGO EXTRA)
             <div className="space-y-4">
-              <Day06ImanolExperience onWin={function (): void {
-                          throw new Error("Function not implemented.");
-                        } } />
-              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
-                <div className="text-sm font-semibold">Mini juego</div>
-                <p className="mt-1 text-xs text-zinc-600">
-                  Explota burbujitas con calma 😄
-                </p>
-                <Day06Constellation onComplete={onWin} />
-              </div>
+              <Day06ImanolExperience onWin={onWin} />
             </div>
           ) : item.day === 7 ? (
             <div className="space-y-4">
