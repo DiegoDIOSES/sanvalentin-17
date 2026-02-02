@@ -225,7 +225,7 @@ export default function DayModal({
           ) : item.day === 6 ? (
             <div className="space-y-4">
               {/* ✅ Experiencia grande: que el componente use el alto disponible */}
-              <div className="min-h-[66vh] md:min-h-[62vh]">
+              <div className="h-[70vh] min-h-[520px] md:h-[62vh] md:min-h-[560px]">
                 <Day06ImanolExperience onWin={onWin} />
               </div>
             </div>
