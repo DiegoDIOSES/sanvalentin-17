@@ -41,11 +41,10 @@ export default function DayModal({
   const [wins, setWins] = useState(0);
   const isFinal = item.day === 17;
 
-  // Día 6: secreto se puede repetir cada vez que abras el modal
+  // Día 6: “falta descubrir algo”
   const [showDay6Secret, setShowDay6Secret] = useState(false);
   const [day6SecretDone, setDay6SecretDone] = useState(false);
 
-  // Reset del estado del Día 6 cada vez que abres el modal en Día 6
   useEffect(() => {
     if (item.day === 6) {
       setShowDay6Secret(false);
@@ -54,7 +53,6 @@ export default function DayModal({
   }, [item.day]);
 
   useEffect(() => {
-    // OJO: si día 6 NO quieres sonidos, deja item.sound vacío en days.ts para ese día.
     playSound(item.sound, muted, 0.85);
     return () => stopSound();
   }, [item.sound, muted]);
@@ -210,9 +208,9 @@ export default function DayModal({
                 </div>
               </div>
             ) : item.day === 6 ? (
-              // ✅ Día 6: contenedor con altura real para que NO colapse
               <div className="space-y-4">
-                <div className="min-h-[560px] md:min-h-[640px]">
+                {/* ✅ CLAVE: altura REAL (no min-h) para que h-full/absolute funcione */}
+                <div className="h-[62vh] min-h-[520px] max-h-[760px]">
                   <Day06ImanolExperience onWin={onWin} />
                 </div>
 
@@ -280,7 +278,7 @@ export default function DayModal({
         </motion.div>
       </motion.div>
 
-      {/* ✅ Popup “falta algo” (se puede repetir) */}
+      {/* ✅ Popup “falta algo” */}
       <Day06OneMoreThing
         open={showDay6Secret}
         imageSrc="/images/day06-imanol.jpg"
