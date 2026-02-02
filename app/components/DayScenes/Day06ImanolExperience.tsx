@@ -17,18 +17,30 @@ export default function Day06ImanolExperience({ onWin }: { onWin: () => void }) 
     <div className="h-full min-h-0 flex flex-col">
       <div className="flex-1 min-h-0">
         <div className="relative h-full min-h-0 overflow-hidden rounded-[28px] border border-zinc-200 bg-white shadow-soft">
-          <div className={`relative h-full min-h-0 bg-gradient-to-br ${gradient}`}>
+          <div
+            className={`relative h-full min-h-0 bg-gradient-to-br ${gradient}`}
+          >
+            {/* blobs */}
             <motion.div
               className="absolute -top-32 -right-28 h-96 w-96 rounded-full bg-amber-200/45 blur-3xl"
               animate={{ x: [0, -10, 0], y: [0, 10, 0] }}
-              transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+              transition={{
+                duration: 10,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
             />
             <motion.div
               className="absolute -bottom-40 -left-32 h-[520px] w-[520px] rounded-full bg-rose-200/45 blur-3xl"
               animate={{ x: [0, 12, 0], y: [0, -10, 0] }}
-              transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
+              transition={{
+                duration: 11,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
             />
 
+            {/* grain */}
             <div className="pointer-events-none absolute inset-0 opacity-[0.07] mix-blend-multiply bg-[radial-gradient(circle_at_1px_1px,rgba(0,0,0,0.45)_1px,transparent_0)] [background-size:14px_14px]" />
 
             {/* top pills */}
@@ -45,6 +57,7 @@ export default function Day06ImanolExperience({ onWin }: { onWin: () => void }) 
             </div>
 
             <AnimatePresence mode="wait">
+              {/* STEP 1 */}
               {step === 1 && (
                 <motion.div
                   key="step1"
@@ -54,11 +67,15 @@ export default function Day06ImanolExperience({ onWin }: { onWin: () => void }) 
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.6 }}
                 >
-                  <div className="max-w-2xl text-center">
+                  <div className="max-w-2xl text-center px-2">
                     <motion.div
-                      className="mx-auto mb-6 h-14 w-14 rounded-2xl bg-white/70 backdrop-blur border border-white/60 shadow-soft grid place-items-center text-2xl"
+                      className="mx-auto mb-5 md:mb-6 h-14 w-14 rounded-2xl bg-white/70 backdrop-blur border border-white/60 shadow-soft grid place-items-center text-2xl"
                       animate={{ rotate: [0, 2, 0, -2, 0] }}
-                      transition={{ duration: 4.8, repeat: Infinity, ease: "easeInOut" }}
+                      transition={{
+                        duration: 4.8,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      }}
                     >
                       🤍
                     </motion.div>
@@ -71,7 +88,7 @@ export default function Day06ImanolExperience({ onWin }: { onWin: () => void }) 
                       No hacen ruido. Pero cambian el día.
                     </div>
 
-                    <div className="mt-8 flex justify-center">
+                    <div className="mt-7 md:mt-8 flex justify-center">
                       <button
                         onClick={() => setStep(2)}
                         className="rounded-2xl bg-zinc-900 text-white px-6 py-3 text-sm font-semibold shadow-soft"
@@ -83,18 +100,28 @@ export default function Day06ImanolExperience({ onWin }: { onWin: () => void }) 
                 </motion.div>
               )}
 
+              {/* STEP 2 */}
               {step === 2 && (
                 <motion.div
                   key="step2"
-                  className="absolute inset-0 pt-20 md:pt-24 pb-[110px] md:pb-[120px] px-4 md:px-8 overflow-y-auto z-10"
+                  className="
+                    absolute inset-0 z-10
+                    pt-16 md:pt-24
+                    pb-[92px] md:pb-[120px]
+                    px-3 md:px-8
+                    overflow-y-auto
+                  "
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.55 }}
                 >
-                  <div className="mx-auto max-w-5xl">
+                  {/* ✅ escala ligera en móviles para que NO se encime */}
+                  <div className="mx-auto max-w-5xl origin-top scale-[0.92] sm:scale-100">
                     <div className="text-center">
-                      <div className="text-xs text-zinc-600">Constelación de momentos</div>
+                      <div className="text-xs text-zinc-600">
+                        Constelación de momentos
+                      </div>
                       <div className="mt-1 text-xl md:text-2xl font-semibold text-zinc-900">
                         Enciende cada luz ✨
                       </div>
@@ -103,7 +130,7 @@ export default function Day06ImanolExperience({ onWin }: { onWin: () => void }) 
                       </div>
                     </div>
 
-                    <div className="mt-6">
+                    <div className="mt-5 md:mt-6">
                       <Day06ConstellationCinematic
                         onComplete={() => {
                           if (!completed) {
@@ -118,16 +145,24 @@ export default function Day06ImanolExperience({ onWin }: { onWin: () => void }) 
                 </motion.div>
               )}
 
+              {/* STEP 3 */}
               {step === 3 && (
                 <motion.div
                   key="step3"
-                  className="absolute inset-0 pt-20 md:pt-24 pb-[110px] md:pb-[120px] px-4 md:px-8 overflow-y-auto z-10"
+                  className="
+                    absolute inset-0 z-10
+                    pt-16 md:pt-24
+                    pb-[92px] md:pb-[120px]
+                    px-3 md:px-8
+                    overflow-y-auto
+                  "
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.55 }}
                 >
-                  <div className="mx-auto max-w-4xl">
+                  {/* ✅ escala ligera en móviles para que se lea mejor */}
+                  <div className="mx-auto max-w-4xl origin-top scale-[0.92] sm:scale-100">
                     <div className="text-center">
                       <div className="text-xs text-zinc-600">Carta</div>
                       <div className="mt-1 text-xl md:text-2xl font-semibold text-zinc-900">
@@ -138,7 +173,7 @@ export default function Day06ImanolExperience({ onWin }: { onWin: () => void }) 
                       </div>
                     </div>
 
-                    <div className="mt-6">
+                    <div className="mt-5 md:mt-6">
                       <Day06CleanReveal
                         coverColor="#f4c5cf"
                         backgroundImageSrc="/images/day06-imanol.jpg"
@@ -150,7 +185,7 @@ export default function Day06ImanolExperience({ onWin }: { onWin: () => void }) 
                       />
                     </div>
 
-                    <div className="mt-6 flex justify-center gap-2">
+                    <div className="mt-5 md:mt-6 flex justify-center gap-2">
                       <button
                         onClick={() => setStep(2)}
                         className="rounded-2xl bg-white border border-zinc-200 px-4 py-3 text-sm font-semibold"
@@ -158,7 +193,11 @@ export default function Day06ImanolExperience({ onWin }: { onWin: () => void }) 
                         Volver a mirar ✨
                       </button>
                       <button
-                        onClick={() => setStep(1)}
+                        onClick={() => {
+                          // ✅ reinicia acto + permite volver a ver todo de nuevo
+                          setCompleted(false);
+                          setStep(1);
+                        }}
                         className="rounded-2xl bg-zinc-900 text-white px-4 py-3 text-sm font-semibold"
                       >
                         Repetir
@@ -169,7 +208,7 @@ export default function Day06ImanolExperience({ onWin }: { onWin: () => void }) 
               )}
             </AnimatePresence>
 
-            {/* bottom progress */}
+            {/* bottom progress (siempre visible) */}
             <div className="absolute left-4 right-4 bottom-4 md:left-6 md:right-6 md:bottom-6 z-20">
               <div className="rounded-2xl bg-white/70 backdrop-blur border border-white/60 shadow-soft p-3">
                 <div className="flex items-center justify-between text-[11px] text-zinc-700">
@@ -177,13 +216,21 @@ export default function Day06ImanolExperience({ onWin }: { onWin: () => void }) 
                   <span className="font-semibold">{step}/3</span>
                 </div>
                 <div className="mt-2 h-2 rounded-full bg-zinc-200 overflow-hidden">
-                  <div className="h-full bg-zinc-900" style={{ width: `${(step / 3) * 100}%` }} />
+                  <div
+                    className="h-full bg-zinc-900"
+                    style={{ width: `${(step / 3) * 100}%` }}
+                  />
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* ✅ si quieres mantener la frase fuera (opcional) */}
+      {/* <div className="mt-3 text-[11px] text-zinc-600 text-center shrink-0">
+        Sin sonidos • solo sensación.
+      </div> */}
     </div>
   );
 }

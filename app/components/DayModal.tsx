@@ -24,6 +24,7 @@ import Day05BuenosAires from "./DayScenes/Day05BuenosAires";
 import Day05LightCity from "./MicroGames/Day05LightCity";
 
 import Day06ImanolExperience from "./DayScenes/Day06ImanolExperience";
+import Day06ConstellationCinematic from "./MicroGames/Day06ConstellationCinematic";
 
 import Day07Flowers from "./DayScenes/Day07Flowers";
 import Day07GardenBloom from "./MicroGames/Day07GardenBloom";
@@ -40,11 +41,20 @@ export default function DayModal({
   const [wins, setWins] = useState(0);
   const isFinal = item.day === 17;
 
+  // ✅ Mantén audio general si lo quieres; Día 6 “sin sonidos” lo controlas dentro de su experiencia.
   useEffect(() => {
-    // Sonido del día al abrir
     playSound(item.sound, muted, 0.85);
     return () => stopSound();
   }, [item.sound, muted]);
+
+  // ✅ ESC cierra (desktop)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
 
   const onWin = () => {
     setWins((w) => w + 1);
@@ -52,7 +62,7 @@ export default function DayModal({
     playSound("/sounds/unlock.mp3", muted, 0.8);
   };
 
-  const Game = useMemo(() => {
+  const DefaultGame = useMemo(() => {
     if (item.microGame === "tap") return <TapGame onWin={onWin} />;
     if (item.microGame === "hold") return <HoldGame onWin={onWin} />;
     return <DragGame onWin={onWin} />;
@@ -61,82 +71,57 @@ export default function DayModal({
 
   return (
     <motion.div
-      className="
-        fixed inset-0 z-50
-        flex items-end md:items-center justify-center
-        bg-black/40
-        px-3 pb-[max(12px,env(safe-area-inset-bottom))]
-        pt-[max(12px,env(safe-area-inset-top))]
-        md:p-6
-      "
+      className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40 px-3 py-3 md:p-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      onMouseDown={() => {
-        // cerrar tocando el overlay
-        playSound("/sounds/pop.mp3", muted, 0.6);
-        onClose();
-      }}
+      // ✅ onClick (no onMouseDown) evita cierres raros en móvil
+      onClick={() => onClose()}
     >
       <motion.div
-        onMouseDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
         className="
-          w-full max-w-2xl
-          overflow-hidden
-          bg-white shadow-soft
+          relative w-full max-w-2xl overflow-hidden rounded-[26px] bg-white shadow-soft
           flex flex-col
-          max-h-[92vh] md:max-h-[85vh]
-          rounded-[26px] md:rounded-[26px]
-          rounded-b-[26px]
-          rounded-t-[28px]
+          h-[92svh] md:h-auto
+          max-h-[92svh] md:max-h-[82vh]
         "
         initial={{ y: 40, scale: 0.98, opacity: 0 }}
         animate={{ y: 0, scale: 1, opacity: 1 }}
         exit={{ y: 30, scale: 0.98, opacity: 0 }}
         transition={{ type: "spring", stiffness: 260, damping: 26 }}
       >
-        {/* Header */}
-        <div
-          className={`relative bg-gradient-to-br ${item.accentGradient}`}
-        >
-          <div className="relative p-5 md:p-6">
-            <div className="flex items-start justify-between gap-4">
+        {/* ✅ HEADER sticky para que en móvil no “se pierda” y el botón no quede bloqueado */}
+        <div className="sticky top-0 z-[60]">
+          <div className={`relative p-4 md:p-6 bg-gradient-to-br ${item.accentGradient}`}>
+            <div className="relative flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <div className="text-xs font-semibold text-zinc-700">
                   Día {item.day}
                 </div>
-
-                <h2 className="mt-1 text-[22px] md:text-3xl font-semibold leading-tight">
+                <h2 className="mt-1 text-2xl md:text-3xl font-semibold truncate">
                   {item.title}
                 </h2>
-
                 <p className="mt-2 text-sm text-zinc-700 max-w-xl">
                   {item.description}
                 </p>
-
                 <div className="mt-3 text-xs text-zinc-700">
                   Victorias: <span className="font-semibold">{wins}</span>
                 </div>
               </div>
 
-              {/* ✅ Cerrar siempre clickeable */}
+              {/* ✅ SIEMPRE clickeable: z alto + pointer-events */}
               <button
                 type="button"
-                onMouseDown={(e) => e.stopPropagation()}
-                onPointerDown={(e) => e.stopPropagation()}
                 onClick={(e) => {
                   e.stopPropagation();
                   playSound("/sounds/pop.mp3", muted, 0.6);
                   onClose();
                 }}
                 className="
-                  pointer-events-auto
-                  relative z-50
-                  rounded-2xl
-                  bg-white/80 backdrop-blur
-                  border border-white/60
-                  px-3 py-2 text-sm
-                  shadow-soft
+                  relative z-[70] pointer-events-auto
+                  rounded-2xl bg-white/80 backdrop-blur px-3 py-2 text-sm
+                  border border-white/60 shadow-soft
                   active:scale-[0.98]
                 "
               >
@@ -145,7 +130,7 @@ export default function DayModal({
             </div>
 
             <motion.div
-              className="mt-4 text-5xl md:text-6xl"
+              className="mt-3 text-5xl md:text-6xl"
               initial={{ scale: 0.8, rotate: -6, opacity: 0 }}
               animate={{ scale: 1, rotate: 0, opacity: 1 }}
               transition={{ type: "spring", stiffness: 220, damping: 14 }}
@@ -155,9 +140,8 @@ export default function DayModal({
           </div>
         </div>
 
-        {/* Body (scroll bien en móvil) */}
-        <div className="flex-1 min-h-0 overflow-y-auto p-4 md:p-7">
-          {/* Día 1 */}
+        {/* ✅ BODY: ahora sí es el área scroll real en móvil */}
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 md:px-7 md:py-6">
           {item.day === 1 ? (
             <div className="space-y-4">
               <Day01Giraffe />
@@ -175,8 +159,7 @@ export default function DayModal({
               <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
                 <div className="text-sm font-semibold">Mini juego</div>
                 <p className="mt-1 text-xs text-zinc-600">
-                  Decora la torta con ingredientes antes de que se acabe el
-                  tiempo ✨
+                  Decora la torta con ingredientes antes de que se acabe el tiempo ✨
                 </p>
                 <Day02DecorateCake onWin={onWin} />
               </div>
@@ -200,11 +183,7 @@ export default function DayModal({
                 <p className="mt-1 text-xs text-zinc-600">
                   Rompecabezas de 15 piezas. Cada vez se mezcla distinto 🧩
                 </p>
-                <Day04TiniPuzzle
-                  onWin={onWin}
-                  muted={muted}
-                  imageSrc="/images/tini.jpg"
-                />
+                <Day04TiniPuzzle onWin={onWin} muted={muted} imageSrc="/images/tini.jpg" />
               </div>
             </div>
           ) : item.day === 5 ? (
@@ -213,7 +192,7 @@ export default function DayModal({
               <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
                 <div className="text-sm font-semibold">Mini juego</div>
                 <p className="mt-1 text-xs text-zinc-600">
-                  Enciende la ciudad y luego te llevo a la melodía 🌆✨
+                  Enciende la ciudad y desbloquea la canción 🌆✨
                 </p>
                 <Day05LightCity
                   onWin={onWin}
@@ -224,10 +203,14 @@ export default function DayModal({
             </div>
           ) : item.day === 6 ? (
             <div className="space-y-4">
-              {/* ✅ Experiencia grande: que el componente use el alto disponible */}
-              <div className="h-[70vh] min-h-[520px] md:h-[62vh] md:min-h-[560px]">
-                <Day06ImanolExperience onWin={onWin} />
-              </div>
+              <Day06ImanolExperience onWin={onWin} />
+              {/* Si todavía usas la constelación suelta en el modal, déjala.
+                  Si ya está adentro del Day06ImanolExperience, elimina este bloque. */}
+              {/* <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+                <div className="text-sm font-semibold">Mini juego</div>
+                <p className="mt-1 text-xs text-zinc-600">Constelación ✨</p>
+                <Day06ConstellationCinematic onComplete={onWin} />
+              </div> */}
             </div>
           ) : item.day === 7 ? (
             <div className="space-y-4">
@@ -243,10 +226,8 @@ export default function DayModal({
           ) : !isFinal ? (
             <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
               <div className="text-sm font-semibold">Mini juego</div>
-              <p className="mt-1 text-xs text-zinc-600">
-                Cada día se siente distinto 😉
-              </p>
-              {Game}
+              <p className="mt-1 text-xs text-zinc-600">Cada día se siente distinto 😉</p>
+              {DefaultGame}
             </div>
           ) : (
             <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-5">
@@ -260,11 +241,7 @@ export default function DayModal({
               <div className="mt-4 flex flex-col sm:flex-row gap-2">
                 <button
                   onClick={() => {
-                    confetti({
-                      particleCount: 120,
-                      spread: 80,
-                      origin: { y: 0.35 },
-                    });
+                    confetti({ particleCount: 120, spread: 80, origin: { y: 0.35 } });
                     playSound("/sounds/secret.mp3", muted, 0.8);
                   }}
                   className="rounded-2xl bg-zinc-900 text-white px-4 py-3 text-sm font-semibold"
@@ -287,11 +264,11 @@ export default function DayModal({
           )}
         </div>
 
-        {/* Footer note (no ocupa mucho en móvil) */}
-        <div className="border-t border-zinc-100 px-4 py-3 text-center text-[11px] text-zinc-600">
+        {/* ✅ Footer pegado abajo, no empuja el contenido */}
+        <div className="shrink-0 border-t border-zinc-100 px-4 py-3 text-center text-[11px] text-zinc-600">
           Sin sonidos • solo sensación.
         </div>
       </motion.div>
     </motion.div>
   );
-}
+} 
