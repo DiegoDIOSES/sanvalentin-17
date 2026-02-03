@@ -33,7 +33,7 @@ import Day08Bicycle from "./DayScenes/Day08Bicycle";
 import Day08BicycleBalance from "./MicroGames/Day08BicycleBalance";
 
 import Day09AjiDeGallina from "./DayScenes/Day09AjiDeGallina";
-import Day09AssembleAji from "./MicroGames/Day09AssembleAji";
+import Day09FindIngredients from "./MicroGames/Day09FindIngredients";
 
 export default function DayModal({
   item,
@@ -264,9 +264,10 @@ export default function DayModal({
               <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
                 <div className="text-sm font-semibold">Mini juego</div>
                 <p className="mt-1 text-xs text-zinc-600">
-                  Arma el plato tocando ingredientes en orden 🍽️
+                  Tienes 2 segundos para encontrar el emoji correcto y ponerlo
+                  en el plato 🍽️
                 </p>
-                <Day09AssembleAji onWin={onWin} />
+                <Day09FindIngredients onWin={onWin} />
               </div>
             </div>
           ) : !isFinal ? (
