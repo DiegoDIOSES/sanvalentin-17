@@ -24,7 +24,7 @@ import Day05BuenosAires from "./DayScenes/Day05BuenosAires";
 import Day05LightCity from "./MicroGames/Day05LightCity";
 
 import Day06ImanolExperience from "./DayScenes/Day06ImanolExperience";
-import Day06Constellation from "./MicroGames/Day06ConstellationCinematic";
+// import Day06Constellation from "./MicroGames/Day06ConstellationCinematic";
 
 import Day07Flowers from "./DayScenes/Day07Flowers";
 import Day07GardenBloom from "./MicroGames/Day07GardenBloom";
@@ -46,10 +46,25 @@ export default function DayModal({
     return () => stopSound();
   }, [item.sound, muted]);
 
+  // ✅ helper: confetti solo si quieres (y día 7 NO)
+  const celebrate = (opts?: { particleCount?: number; spread?: number }) => {
+    confetti({
+      particleCount: opts?.particleCount ?? 70,
+      spread: opts?.spread ?? 65,
+      origin: { y: 0.35 },
+    });
+  };
+
+  // ✅ onWin ahora NO hace lluvia en día 7
   const onWin = () => {
     setWins((w) => w + 1);
-    confetti({ particleCount: 70, spread: 65, origin: { y: 0.35 } });
-    // si ya no quieres sonidos en días importantes, puedes comentar esto:
+
+    // ❌ Día 7 sin confetti (sin lluvia)
+    if (item.day !== 7) {
+      celebrate();
+    }
+
+    // sonido OK para todos (si quieres también puedes excluir día 7)
     playSound("/sounds/unlock.mp3", muted, 0.8);
   };
 
@@ -58,7 +73,7 @@ export default function DayModal({
     if (item.microGame === "hold") return <HoldGame onWin={onWin} />;
     return <DragGame onWin={onWin} />;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [item.microGame, muted]);
+  }, [item.microGame, muted, item.day]);
 
   return (
     <motion.div
@@ -70,14 +85,12 @@ export default function DayModal({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      // ✅ cierra SOLO si haces click en el fondo (no onMouseDown)
       onClick={() => {
         playSound("/sounds/pop.mp3", muted, 0.6);
         onClose();
       }}
     >
       <motion.div
-        // ✅ evita que el click “suba” al backdrop
         onClick={(e) => e.stopPropagation()}
         className="
           w-full
@@ -88,8 +101,6 @@ export default function DayModal({
           overflow-hidden
           rounded-none md:rounded-[26px]
         "
-        // ✅ full screen en móvil (sin padding externo)
-        // ✅ en desktop se verá como tarjeta
         initial={{ y: 30, scale: 0.995, opacity: 0 }}
         animate={{ y: 0, scale: 1, opacity: 1 }}
         exit={{ y: 20, scale: 0.995, opacity: 0 }}
@@ -123,7 +134,6 @@ export default function DayModal({
               </div>
             </div>
 
-            {/* ✅ Cerrar siempre clickeable */}
             <button
               onClick={() => {
                 playSound("/sounds/pop.mp3", muted, 0.6);
@@ -150,7 +160,7 @@ export default function DayModal({
           </motion.div>
         </div>
 
-        {/* BODY (ocupa todo el alto real en móvil) */}
+        {/* BODY */}
         <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 md:px-7 md:py-7">
           {item.day === 1 ? (
             <div className="space-y-4">
@@ -217,21 +227,7 @@ export default function DayModal({
             </div>
           ) : item.day === 6 ? (
             <div className="space-y-4">
-              {/* ✅ Día 6 “grande”: el componente ya trae su propio panel alto */}
               <Day06ImanolExperience onWin={onWin} />
-
-              {/* Si aún quieres mantener este bloque viejo, bórralo.
-                  Lo dejo comentado para que NO te duplique cosas:
-              */}
-              {/*
-              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
-                <div className="text-sm font-semibold">Mini juego</div>
-                <p className="mt-1 text-xs text-zinc-600">
-                  Enciende las luces ✨
-                </p>
-                <Day06Constellation onComplete={onWin} />
-              </div>
-              */}
             </div>
           ) : item.day === 7 ? (
             <div className="space-y-4">
@@ -241,6 +237,7 @@ export default function DayModal({
                 <p className="mt-1 text-xs text-zinc-600">
                   5 semillas, 5 gestos distintos. Haz florecer el jardín 🌸
                 </p>
+                {/* ✅ seguirá llamando onWin, pero ya NO habrá confetti por el check */}
                 <Day07GardenBloom onWin={onWin} muted={muted} />
               </div>
             </div>
@@ -264,11 +261,8 @@ export default function DayModal({
               <div className="mt-4 flex flex-col sm:flex-row gap-2">
                 <button
                   onClick={() => {
-                    confetti({
-                      particleCount: 120,
-                      spread: 80,
-                      origin: { y: 0.35 },
-                    });
+                    // ✅ aquí sí confetti
+                    celebrate({ particleCount: 120, spread: 80 });
                     playSound("/sounds/secret.mp3", muted, 0.8);
                   }}
                   className="rounded-2xl bg-zinc-900 text-white px-4 py-3 text-sm font-semibold"
