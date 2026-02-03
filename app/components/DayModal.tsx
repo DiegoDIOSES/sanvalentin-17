@@ -29,6 +29,12 @@ import Day06ImanolExperience from "./DayScenes/Day06ImanolExperience";
 import Day07Flowers from "./DayScenes/Day07Flowers";
 import Day07GardenBloom from "./MicroGames/Day07GardenBloom";
 
+import Day08Bicycle from "./DayScenes/Day08Bicycle";
+import Day08BicycleBalance from "./MicroGames/Day08BicycleBalance";
+
+import Day09AjiDeGallina from "./DayScenes/Day09AjiDeGallina";
+import Day09AssembleAji from "./MicroGames/Day09AssembleAji";
+
 export default function DayModal({
   item,
   onClose,
@@ -239,6 +245,28 @@ export default function DayModal({
                 </p>
                 {/* ✅ seguirá llamando onWin, pero ya NO habrá confetti por el check */}
                 <Day07GardenBloom onWin={onWin} muted={muted} />
+              </div>
+            </div>
+          ) : item.day === 8 ? (
+            <div className="space-y-4">
+              <Day08Bicycle />
+              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+                <div className="text-sm font-semibold">Mini juego</div>
+                <p className="mt-1 text-xs text-zinc-600">
+                  Mantén el equilibrio en el carril 🚲
+                </p>
+                <Day08BicycleBalance onWin={onWin} />
+              </div>
+            </div>
+          ) : item.day === 9 ? (
+            <div className="space-y-4">
+              <Day09AjiDeGallina />
+              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+                <div className="text-sm font-semibold">Mini juego</div>
+                <p className="mt-1 text-xs text-zinc-600">
+                  Arma el plato tocando ingredientes en orden 🍽️
+                </p>
+                <Day09AssembleAji onWin={onWin} />
               </div>
             </div>
           ) : !isFinal ? (
