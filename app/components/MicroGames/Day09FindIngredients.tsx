@@ -285,10 +285,6 @@ export default function Day09FindIngredients({ onWin }: { onWin: () => void }) {
           ))}
         </div>
       </div>
-
-      <div className="mt-2 text-[11px] text-zinc-600">
-        Tip: son solo <span className="font-semibold">2 segundos</span> 😈
-      </div>
     </div>
   );
 }

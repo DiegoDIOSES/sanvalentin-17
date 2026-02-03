@@ -21,13 +21,7 @@ export default function Day09AjiDeGallina() {
           initial={{ rotate: -6, scale: 0.9, opacity: 0 }}
           animate={{ rotate: 0, scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 220, damping: 14 }}
-        >
-          🌶️
-        </motion.div>
-      </div>
-
-      <div className="mt-3 text-[11px] text-zinc-600">
-        Tip: cuando salga una palabra… piensa en su emoji 😄
+        ></motion.div>
       </div>
     </div>
   );
