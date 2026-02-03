@@ -262,17 +262,12 @@ export default function Day07GardenBloom({
                   “Tú eres una de ellas.”
                 </div>
                 <div className="mt-2 text-[11px] text-zinc-600">
-                  Toca cualquier flor para cambiar su color (y vibra).
+                  Toca cualquier flor para cambiar su color.
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
-      </div>
-
-      <div className="mt-2 text-[11px] text-zinc-600">
-        Tip: si el micrófono no está permitido, usa el fallback de soplar con{" "}
-        <span className="font-semibold">swipe ↔</span>.
       </div>
     </div>
   );
@@ -313,10 +308,10 @@ function SeedChip({
 
 function chipLabel(t: SeedType) {
   if (t === "tap") return "tap x18";
-  if (t === "hold") return "hold";
+  if (t === "hold") return "mantener";
   if (t === "slide") return "desliza →";
-  if (t === "blow") return "sopla / swipe";
-  return "inclina / barra";
+  if (t === "blow") return "sopla";
+  return "inclina";
 }
 
 function labelFor(t: SeedType) {
@@ -324,7 +319,7 @@ function labelFor(t: SeedType) {
   if (t === "hold") return "Mantén presionado";
   if (t === "slide") return "Desliza para “dar sol”";
   if (t === "blow") return "Sopla o haz swipe";
-  return "Inclina el celular (o usa la barra)";
+  return "Inclina el celular";
 }
 
 function Flower({
