@@ -59,57 +59,6 @@ function useIsMobile() {
   return isMobile;
 }
 
-type RainPetal = {
-  id: string;
-  x: number;
-  delay: number;
-  emoji: string;
-  size: number;
-};
-
-function FlowerRain({ show }: { show: boolean }) {
-  const petals = useMemo<RainPetal[]>(() => {
-    const emojis = ["🌸", "🌷", "🌼", "💐", "🌺"];
-    return Array.from({ length: 42 }).map((_, i) => ({
-      id: `p-${i}-${Math.random()}`,
-      x: rand(3, 97),
-      delay: rand(0, 0.8),
-      emoji: emojis[Math.floor(rand(0, emojis.length))],
-      size: Math.round(rand(18, 28)),
-    }));
-  }, []);
-
-  return (
-    <AnimatePresence>
-      {show && (
-        <motion.div
-          className="pointer-events-none absolute inset-0 z-40 overflow-hidden"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        >
-          {petals.map((p) => (
-            <motion.div
-              key={p.id}
-              className="absolute top-0"
-              style={{ left: `${p.x}%`, fontSize: p.size }}
-              initial={{ y: -40, rotate: rand(-20, 20), opacity: 0 }}
-              animate={{ y: 520, rotate: rand(-160, 160), opacity: 1 }}
-              transition={{
-                duration: rand(2.6, 3.8),
-                delay: p.delay,
-                ease: "easeInOut",
-              }}
-            >
-              {p.emoji}
-            </motion.div>
-          ))}
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-}
-
 export default function Day07GardenBloom({
   onWin,
   muted, // (ya no lo usamos, pero lo dejamos por compatibilidad)
@@ -148,15 +97,10 @@ export default function Day07GardenBloom({
     [seeds, activeId],
   );
 
-  const [rain, setRain] = useState(false);
-
   useEffect(() => {
     if (!allDone) return;
     petalConfetti();
-    setRain(true);
     onWin();
-    const t = window.setTimeout(() => setRain(false), 4200);
-    return () => window.clearTimeout(t);
   }, [allDone, onWin]);
 
   const markDone = (id: string) => {
@@ -215,8 +159,6 @@ export default function Day07GardenBloom({
         <div
           className={`relative ${panelHeight} rounded-2xl border border-white/70 bg-white/55 backdrop-blur overflow-hidden`}
         >
-          <FlowerRain show={rain} />
-
           {/* instrucción */}
           <div className="absolute left-3 right-3 top-3 z-10">
             <div className="rounded-2xl border border-zinc-200 bg-white/85 backdrop-blur px-4 py-3">
