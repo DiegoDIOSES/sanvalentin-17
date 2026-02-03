@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import confetti from "canvas-confetti";
+// ❌ quitamos confetti porque era la “lluvia”
+// import confetti from "canvas-confetti";
 
 type SeedType = "tap" | "hold" | "slide" | "blow" | "tilt";
 
@@ -36,16 +37,8 @@ function hueToPastel(h: number) {
   return `hsl(${Math.round(h)}, 75%, 78%)`;
 }
 
-function petalConfetti() {
-  confetti({
-    particleCount: 120,
-    spread: 85,
-    startVelocity: 26,
-    gravity: 0.95,
-    scalar: 0.95,
-    origin: { y: 0.35 },
-  });
-}
+// ❌ eliminada la “lluvia” (confetti)
+// function petalConfetti() { ... }
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
@@ -69,7 +62,6 @@ export default function Day07GardenBloom({
   const isMobile = useIsMobile();
 
   const [seeds, setSeeds] = useState<Seed[]>(() => [
-    // posiciones para desktop (base)
     { id: "s1", type: "tap", x: 18, y: 42, done: false, hue: rand(320, 360) },
     { id: "s2", type: "hold", x: 46, y: 28, done: false, hue: rand(0, 35) },
     { id: "s3", type: "slide", x: 74, y: 42, done: false, hue: rand(35, 70) },
@@ -77,7 +69,6 @@ export default function Day07GardenBloom({
     { id: "s5", type: "tilt", x: 72, y: 72, done: false, hue: rand(190, 240) },
   ]);
 
-  // posiciones mobile (más ordenadas, sin choque con header)
   const mobilePos = useMemo(() => {
     return {
       s1: { x: 22, y: 46 },
@@ -99,7 +90,7 @@ export default function Day07GardenBloom({
 
   useEffect(() => {
     if (!allDone) return;
-    petalConfetti();
+    // ✅ SIN LLUVIA: ya no disparamos confetti
     onWin();
   }, [allDone, onWin]);
 
@@ -152,14 +143,12 @@ export default function Day07GardenBloom({
       </div>
 
       <div className="mt-3 relative overflow-hidden rounded-2xl border border-zinc-200 bg-gradient-to-br from-pink-50 via-rose-50 to-amber-50 p-4">
-        {/* blobs */}
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-pink-200/35 blur-3xl" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-amber-200/30 blur-3xl" />
 
         <div
           className={`relative ${panelHeight} rounded-2xl border border-white/70 bg-white/55 backdrop-blur overflow-hidden`}
         >
-          {/* instrucción */}
           <div className="absolute left-3 right-3 top-3 z-10">
             <div className="rounded-2xl border border-zinc-200 bg-white/85 backdrop-blur px-4 py-3">
               <div className="text-[11px] text-zinc-600">
@@ -171,7 +160,6 @@ export default function Day07GardenBloom({
             </div>
           </div>
 
-          {/* semillas/flores */}
           {seeds.map((s) => {
             const pos = isMobile
               ? mobilePos[s.id as keyof typeof mobilePos]
@@ -200,7 +188,6 @@ export default function Day07GardenBloom({
             );
           })}
 
-          {/* overlay de tarea (grande y cómodo en móvil) */}
           <AnimatePresence>
             {activeSeed && (
               <motion.div
@@ -244,7 +231,6 @@ export default function Day07GardenBloom({
             )}
           </AnimatePresence>
 
-          {/* final */}
           <AnimatePresence>
             {allDone && (
               <motion.div
@@ -387,7 +373,6 @@ function TaskPanel({ type, onDone }: { type: SeedType; onDone: () => void }) {
   return <TaskTilt onDone={onDone} />;
 }
 
-/** Tap rápido */
 function TaskTap({ onDone }: { onDone: () => void }) {
   const goal = 18;
   const [n, setN] = useState(0);
@@ -448,7 +433,6 @@ function TaskTap({ onDone }: { onDone: () => void }) {
   );
 }
 
-/** Hold */
 function TaskHold({ onDone }: { onDone: () => void }) {
   const need = 1400;
   const [ms, setMs] = useState(0);
@@ -510,7 +494,6 @@ function TaskHold({ onDone }: { onDone: () => void }) {
   );
 }
 
-/** Nueva actividad (reemplaza drag): SLIDE */
 function TaskSlide({ onDone }: { onDone: () => void }) {
   const [v, setV] = useState(0);
 
@@ -547,7 +530,6 @@ function TaskSlide({ onDone }: { onDone: () => void }) {
   );
 }
 
-/** Blow + fallback swipe */
 function TaskBlow({ onDone }: { onDone: () => void }) {
   const [mic, setMic] = useState<"idle" | "ok" | "denied">("idle");
   const [level, setLevel] = useState(0);
@@ -678,7 +660,6 @@ function TaskBlow({ onDone }: { onDone: () => void }) {
   );
 }
 
-/** Tilt + fallback slider */
 function TaskTilt({ onDone }: { onDone: () => void }) {
   const [supported, setSupported] = useState<boolean | null>(null);
   const [val, setVal] = useState(0);
