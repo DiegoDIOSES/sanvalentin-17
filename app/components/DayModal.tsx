@@ -35,6 +35,30 @@ import Day08BicycleBalance from "./MicroGames/Day08BicycleBalance";
 import Day09AjiDeGallina from "./DayScenes/Day09AjiDeGallina";
 import Day09FindIngredients from "./MicroGames/Day09FindIngredients";
 
+import Day10Lays from "./DayScenes/Day10Lays";
+import Day10CrunchHunt from "./MicroGames/Day10CrunchHunt";
+
+import Day11Winter from "./DayScenes/Day11Winter";
+import Day11WarmUp from "./MicroGames/Day11WarmUp";
+
+import Day12Beach from "./DayScenes/Day12Beach";
+import Day12BuildPostcard from "./MicroGames/Day12BuildPostcard";
+
+import Day13VisAVis from "./DayScenes/Day13VisAVis";
+import Day13EscapeCode from "./MicroGames/Day13EscapeCode";
+
+import Day14Troll from "./DayScenes/Day14Troll";
+import Day14FogTremor from "./MicroGames/Day14FogTremor";
+
+import Day15WhatsApp from "./DayScenes/Day15WhatsApp";
+import Day15OrderChat from "./MicroGames/Day15OrderChat";
+
+import Day16Coquita from "./DayScenes/Day16Coquita";
+import Day16PourCoke from "./MicroGames/Day16PourCoke";
+
+import Day17ChocoMenta from "./DayScenes/Day17ChocoMenta";
+import Day17SwirlMix from "./MicroGames/Day17SwirlMix";
+
 export default function DayModal({
   item,
   onClose,
@@ -268,6 +292,94 @@ export default function DayModal({
                   en el plato 🍽️
                 </p>
                 <Day09FindIngredients onWin={onWin} />
+              </div>
+            </div>
+          ) : item.day === 10 ? (
+            <div className="space-y-4">
+              <Day10Lays />
+              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+                <div className="text-sm font-semibold">Mini juego</div>
+                <p className="mt-1 text-xs text-zinc-600">
+                  Solo una bolsita vibra distinto. Tienes 3 intentos 😉
+                </p>
+                <Day10CrunchHunt onWin={onWin} />
+              </div>
+            </div>
+          ) : item.day === 11 ? (
+            <div className="space-y-4">
+              <Day11Winter />
+              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+                <div className="text-sm font-semibold">Mini juego</div>
+                <p className="mt-1 text-xs text-zinc-600">
+                  Agrega capas hasta llegar a 100% ❄️
+                </p>
+                <Day11WarmUp onWin={onWin} />
+              </div>
+            </div>
+          ) : item.day === 12 ? (
+            <div className="space-y-4">
+              <Day12Beach />
+              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+                <div className="text-sm font-semibold">Mini juego</div>
+                <p className="mt-1 text-xs text-zinc-600">
+                  Toca los stickers para colocarlos en su sombra 🏖️
+                </p>
+                <Day12BuildPostcard onWin={onWin} />
+              </div>
+            </div>
+          ) : item.day === 13 ? (
+            <div className="space-y-4">
+              <Day13VisAVis />
+              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+                <div className="text-sm font-semibold">Mini juego</div>
+                <p className="mt-1 text-xs text-zinc-600">
+                  4 pistas → 1 código 🔐
+                </p>
+                <Day13EscapeCode onWin={onWin} />
+              </div>
+            </div>
+          ) : item.day === 14 ? (
+            <div className="space-y-4">
+              <Day14Troll />
+              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+                <div className="text-sm font-semibold">Mini juego</div>
+                <p className="mt-1 text-xs text-zinc-600">
+                  Una zona “tiembla” un poquito. Encuéntrala 🌫️
+                </p>
+                <Day14FogTremor onWin={onWin} />
+              </div>
+            </div>
+          ) : item.day === 15 ? (
+            <div className="space-y-4">
+              <Day15WhatsApp />
+              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+                <div className="text-sm font-semibold">Mini juego</div>
+                <p className="mt-1 text-xs text-zinc-600">
+                  Arrastra para ordenar el chat. Cuando encaje… ✔✔
+                </p>
+                <Day15OrderChat onWin={onWin} />
+              </div>
+            </div>
+          ) : item.day === 16 ? (
+            <div className="space-y-4">
+              <Day16Coquita />
+              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+                <div className="text-sm font-semibold">Mini juego</div>
+                <p className="mt-1 text-xs text-zinc-600">
+                  Destapa → sirve (sin pasarte) → limón 🍋
+                </p>
+                <Day16PourCoke onWin={onWin} />
+              </div>
+            </div>
+          ) : item.day === 17 ? (
+            <div className="space-y-4">
+              <Day17ChocoMenta />
+              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+                <div className="text-sm font-semibold">Mini juego</div>
+                <p className="mt-1 text-xs text-zinc-600">
+                  Mezcla el swirl hasta que “se sienta” correcto 🍦
+                </p>
+                <Day17SwirlMix onWin={onWin} />
               </div>
             </div>
           ) : !isFinal ? (
