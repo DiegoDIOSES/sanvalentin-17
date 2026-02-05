@@ -76,6 +76,15 @@ export default function DayModal({
     return () => stopSound();
   }, [item.sound, muted]);
 
+  // ✅ helper: confetti solo si quieres (y día 7 NO)
+  const celebrate = (opts?: { particleCount?: number; spread?: number }) => {
+    confetti({
+      particleCount: opts?.particleCount ?? 70,
+      spread: opts?.spread ?? 65,
+      origin: { y: 0.35 },
+    });
+  };
+
   // ✅ onWin ahora NO hace lluvia en día 7
   const onWin = () => {
     setWins((w) => w + 1);
