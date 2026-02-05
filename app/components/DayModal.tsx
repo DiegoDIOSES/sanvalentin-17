@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import confetti from "canvas-confetti";
+//import confetti from "canvas-confetti";
 
 import type { DayItem } from "../data/days";
 import { playSound, stopSound } from "../lib/sound";
@@ -77,13 +77,7 @@ export default function DayModal({
   }, [item.sound, muted]);
 
   // ✅ helper: confetti solo si quieres (y día 7 NO)
-  const celebrate = (opts?: { particleCount?: number; spread?: number }) => {
-    confetti({
-      particleCount: opts?.particleCount ?? 70,
-      spread: opts?.spread ?? 65,
-      origin: { y: 0.35 },
-    });
-  };
+  const celebrate = (_opts?: { particleCount?: number; spread?: number }) => {};
 
   // ✅ onWin ahora NO hace lluvia en día 7
   const onWin = () => {
