@@ -76,7 +76,7 @@ export default function Day14TrollQuest({ onWin }: { onWin: () => void }) {
   };
 
   /* -------------------------
-     ACT 3 — Escape (NO deps lane)
+     ACT 3 — Escape
   ------------------------- */
   const [lane, setLane] = useState<-1 | 1>(-1);
   const laneRef = useRef<-1 | 1>(-1);
@@ -92,19 +92,32 @@ export default function Day14TrollQuest({ onWin }: { onWin: () => void }) {
 
   const swipeStartX = useRef<number | null>(null);
 
-  // ✅ loop del Acto 3 (con inicialización integrada, sin depender de lane)
+  // ✅ loop del Acto 3 (con inicialización integrada)
   useEffect(() => {
     if (act !== 3) return;
 
     let alive = true;
     let initialized = false;
 
-    const rockEvery = 780;
-    const speed = 1.35;
+    // ✅ MÁS ESPACIO ENTRE ROCAS
+    const rockEvery = 1150;
+
+    // velocidad un pelín más suave para dar margen real
+    const speed = 1.25;
     const tick = 40;
+
+    // ✅ evita 2 rocas seguidas en el mismo carril
+    let lastLane: -1 | 1 | null = null;
+    const pickLane = (): -1 | 1 => {
+      const l: -1 | 1 = Math.random() > 0.5 ? 1 : -1;
+      if (l === lastLane) return pickLane();
+      lastLane = l;
+      return l;
+    };
 
     const spawn = window.setInterval(() => {
       if (!alive) return;
+
       // Initialize on first interval tick
       if (!initialized) {
         initialized = true;
@@ -112,11 +125,12 @@ export default function Day14TrollQuest({ onWin }: { onWin: () => void }) {
         setLane(-1);
         setEscapeMs(5200);
       }
+
       setRocks((prev) => [
         ...prev,
         {
           id: `r_${Date.now()}_${Math.random()}`,
-          lane: Math.random() > 0.5 ? 1 : -1,
+          lane: pickLane(),
           t: 0,
         },
       ]);
@@ -132,10 +146,10 @@ export default function Day14TrollQuest({ onWin }: { onWin: () => void }) {
           .map((r) => ({ ...r, t: r.t + speed }))
           .filter((r) => r.t < 100);
 
-        // collision check 82..92
+        // ✅ colisión más justa (ventana más tarde)
         const currentLane = laneRef.current;
         const danger = next.find(
-          (r) => r.t > 88 && r.t < 96 && r.lane === currentLane,
+          (r) => r.t > 90 && r.t < 98 && r.lane === currentLane,
         );
 
         if (danger) {
@@ -179,7 +193,6 @@ export default function Day14TrollQuest({ onWin }: { onWin: () => void }) {
     if (!escapeDone) return;
     if (finishedRef.current) return;
 
-    // avoid synchronous setState inside effect to prevent cascading renders
     const id = window.setTimeout(() => {
       if (finishedRef.current) return;
       finishedRef.current = true;
@@ -235,9 +248,6 @@ export default function Day14TrollQuest({ onWin }: { onWin: () => void }) {
         <div className="relative rounded-2xl border border-white/70 bg-white/60 backdrop-blur shadow-soft overflow-hidden">
           <div className="absolute left-3 right-3 top-3 z-20">
             <div className="rounded-2xl border border-zinc-200 bg-white/85 backdrop-blur px-4 py-3">
-              <div className="text-[11px] text-zinc-600">
-                Troll mode: sin ruido, pura tensión bonita 😌
-              </div>
               <div className="mt-1 text-sm font-semibold text-zinc-900">
                 {act === 1
                   ? "Acto 1 — Prepárate (arrastrar)"
@@ -379,7 +389,7 @@ function Act1DragBag({
               Elige 3 cosas
             </div>
             <div className="mt-1 text-xs text-zinc-600">
-              Arrastra a la mochila (o toca para añadir).
+              AMantén presionado para arrastar las cosas y equipar tu mochila.
             </div>
           </div>
           <div className="text-xs px-3 py-1 rounded-full border bg-zinc-50 border-zinc-200 text-zinc-700">
@@ -641,20 +651,17 @@ function Act3Escape({
         />
       </div>
 
-      {/* ✅ MÁS AMPLIO: más alto + menos padding interno visual */}
       <div
         className="mt-4 relative h-[320px] md:h-[380px] rounded-2xl border border-zinc-200 bg-gradient-to-b from-zinc-50 via-white to-zinc-100 overflow-hidden select-none touch-none"
         onPointerDown={(e) => onSwipeStart(e.clientX)}
         onPointerUp={(e) => onSwipeEnd(e.clientX)}
         onPointerCancel={() => onSwipeStart(0)}
       >
-        {/* carriles */}
         <div className="absolute inset-0 grid grid-cols-2">
           <div className="border-r border-zinc-200/70" />
           <div />
         </div>
 
-        {/* botones abajo (un poquito más abajo) */}
         <div className="absolute left-3 bottom-3 right-3 flex gap-2 z-20">
           <button
             type="button"
@@ -680,7 +687,6 @@ function Act3Escape({
           </button>
         </div>
 
-        {/* jugador un poco más arriba para dar margen */}
         <motion.div
           className="absolute bottom-[76px] md:bottom-[86px] h-12 w-12 rounded-2xl bg-zinc-900 text-white grid place-items-center shadow-soft z-10"
           animate={{ left: lane === -1 ? "25%" : "75%" }}
@@ -690,7 +696,6 @@ function Act3Escape({
           🧍‍♀️
         </motion.div>
 
-        {/* ✅ rocas más pequeñas */}
         {rocks.map((r) => (
           <motion.div
             key={r.id}

@@ -31,7 +31,7 @@ export default function Day14Troll() {
           <div className="absolute left-4 right-4 top-4 md:left-6 md:right-6 md:top-6">
             <div className="inline-flex items-center gap-2 rounded-2xl bg-white/75 backdrop-blur border border-white/60 px-4 py-2 text-xs text-zinc-800 shadow-soft">
               <span className="text-sm">🪨</span>
-              Día 14 • Troll (Netflix)
+              Día 14 • Troll
             </div>
           </div>
 

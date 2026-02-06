@@ -338,7 +338,7 @@ export default function DayModal({
               <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
                 <div className="text-sm font-semibold">Misión</div>
                 <p className="mt-1 text-xs text-zinc-600">
-                  3 actos: preparación, ritual y escape. (Sin sonidos.)
+                  3 actos: preparación, ritual y escape.
                 </p>
                 <Day14TrollQuest onWin={onWin} />
               </div>
