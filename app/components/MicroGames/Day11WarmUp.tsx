@@ -89,7 +89,7 @@ export default function Day11WarmUp({ onWin }: { onWin: () => void }) {
         {/* EMOJIS */}
         <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
           <div className="text-sm font-semibold text-zinc-900">
-            Arrastra los emojis
+            Manten presionado el emoji y arrástralo al muñeco de nieve ⛄️
           </div>
           <div className="mt-2 grid grid-cols-4 gap-2">
             {items.map((it) => (
