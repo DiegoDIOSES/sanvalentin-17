@@ -48,7 +48,7 @@ import Day13VisAVis from "./DayScenes/Day13VisAVis";
 import Day13EscapeCode from "./MicroGames/Day13EscapeCode";
 
 import Day14Troll from "./DayScenes/Day14Troll";
-import Day14FogTremor from "./MicroGames/Day14FogTremor";
+import Day14FogTremor from "./MicroGames/Day14TrollQuest";
 
 import Day15WhatsApp from "./DayScenes/Day15WhatsApp";
 import Day15OrderChat from "./MicroGames/Day15OrderChat";
@@ -336,11 +336,11 @@ export default function DayModal({
             <div className="space-y-4">
               <Day14Troll />
               <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
-                <div className="text-sm font-semibold">Mini juego</div>
+                <div className="text-sm font-semibold">Misión</div>
                 <p className="mt-1 text-xs text-zinc-600">
-                  Una zona “tiembla” un poquito. Encuéntrala 🌫️
+                  3 actos: preparación, ritual y escape. (Sin sonidos.)
                 </p>
-                <Day14FogTremor onWin={onWin} />
+                <Day14TrollQuest onWin={onWin} />
               </div>
             </div>
           ) : item.day === 15 ? (
