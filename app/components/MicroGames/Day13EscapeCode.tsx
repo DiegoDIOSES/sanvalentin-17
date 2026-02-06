@@ -167,6 +167,7 @@ export default function Day13EscapeCode({ onWin }: { onWin: () => void }) {
 
   // Step 2 (math) -> answer must be 3
   const math = useMemo(() => {
+    // eslint-disable-next-line react-hooks/purity
     const b = 3 + Math.floor(Math.random() * 5); // 3..7
     const a = b + 3; // ensures a-b=3
     return { a, b, ans: 3 };
@@ -195,11 +196,13 @@ export default function Day13EscapeCode({ onWin }: { onWin: () => void }) {
     // stable shuffle per mount
     const arr = [...pool];
     for (let i = arr.length - 1; i > 0; i--) {
+      // eslint-disable-next-line react-hooks/purity
       const j = Math.floor(Math.random() * (i + 1));
       [arr[i], arr[j]] = [arr[j], arr[i]];
     }
 
     // choose a correct key index but keep it subtle
+    // eslint-disable-next-line react-hooks/purity
     const correctIndex = Math.floor(Math.random() * arr.length);
     return {
       list: arr,
