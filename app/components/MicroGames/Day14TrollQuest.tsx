@@ -99,8 +99,8 @@ export default function Day14TrollQuest({ onWin }: { onWin: () => void }) {
     let alive = true;
     let initialized = false;
 
-    const rockEvery = 520;
-    const speed = 1.6;
+    const rockEvery = 780;
+    const speed = 1.35;
     const tick = 40;
 
     const spawn = window.setInterval(() => {
@@ -135,7 +135,7 @@ export default function Day14TrollQuest({ onWin }: { onWin: () => void }) {
         // collision check 82..92
         const currentLane = laneRef.current;
         const danger = next.find(
-          (r) => r.t > 82 && r.t < 92 && r.lane === currentLane,
+          (r) => r.t > 88 && r.t < 96 && r.lane === currentLane,
         );
 
         if (danger) {
@@ -628,7 +628,7 @@ function Act3Escape({
         <div>
           <div className="text-sm font-semibold text-zinc-900">Escape</div>
           <div className="mt-1 text-xs text-zinc-600">
-            Swipe izquierda/derecha para esquivar rocas. Si te golpea, reinicia.
+            Swipe izquierda/derecha para esquivar. Si te golpea, reinicia.
           </div>
         </div>
         <div className="text-xl">🏃‍♀️</div>
@@ -641,17 +641,20 @@ function Act3Escape({
         />
       </div>
 
+      {/* ✅ MÁS AMPLIO: más alto + menos padding interno visual */}
       <div
-        className="mt-4 relative h-[260px] md:h-[300px] rounded-2xl border border-zinc-200 bg-gradient-to-b from-zinc-50 via-white to-zinc-100 overflow-hidden select-none touch-none"
+        className="mt-4 relative h-[320px] md:h-[380px] rounded-2xl border border-zinc-200 bg-gradient-to-b from-zinc-50 via-white to-zinc-100 overflow-hidden select-none touch-none"
         onPointerDown={(e) => onSwipeStart(e.clientX)}
         onPointerUp={(e) => onSwipeEnd(e.clientX)}
         onPointerCancel={() => onSwipeStart(0)}
       >
+        {/* carriles */}
         <div className="absolute inset-0 grid grid-cols-2">
           <div className="border-r border-zinc-200/70" />
           <div />
         </div>
 
+        {/* botones abajo (un poquito más abajo) */}
         <div className="absolute left-3 bottom-3 right-3 flex gap-2 z-20">
           <button
             type="button"
@@ -677,8 +680,9 @@ function Act3Escape({
           </button>
         </div>
 
+        {/* jugador un poco más arriba para dar margen */}
         <motion.div
-          className="absolute bottom-[64px] md:bottom-[70px] h-12 w-12 rounded-2xl bg-zinc-900 text-white grid place-items-center shadow-soft z-10"
+          className="absolute bottom-[76px] md:bottom-[86px] h-12 w-12 rounded-2xl bg-zinc-900 text-white grid place-items-center shadow-soft z-10"
           animate={{ left: lane === -1 ? "25%" : "75%" }}
           transition={{ type: "spring", stiffness: 260, damping: 22 }}
           style={{ transform: "translateX(-50%)" }}
@@ -686,15 +690,16 @@ function Act3Escape({
           🧍‍♀️
         </motion.div>
 
+        {/* ✅ rocas más pequeñas */}
         {rocks.map((r) => (
           <motion.div
             key={r.id}
-            className="absolute top-[-20px] h-10 w-10 rounded-2xl bg-zinc-200 border border-zinc-300 grid place-items-center shadow-soft"
+            className="absolute top-[-18px] h-9 w-9 rounded-2xl bg-zinc-200 border border-zinc-300 grid place-items-center shadow-soft"
             style={{
               left: r.lane === -1 ? "25%" : "75%",
               transform: "translateX(-50%)",
             }}
-            animate={{ y: `${r.t * 2.9}px`, rotate: r.lane === -1 ? 8 : -8 }}
+            animate={{ y: `${r.t * 3.1}px`, rotate: r.lane === -1 ? 8 : -8 }}
             transition={{ duration: 0.04, ease: "linear" }}
           >
             🪨
