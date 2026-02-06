@@ -5,9 +5,13 @@ import { motion } from "framer-motion";
 
 type Bag = { id: string; crunchy: boolean; found: boolean };
 
+const GRID = 5; // ✅ 5x5 (antes 4x3)
+const TOTAL = GRID * GRID;
+const MAX_TRIES = 4; // ✅ antes 3
+
 function makeBags() {
-  const idx = Math.floor(Math.random() * 12);
-  return Array.from({ length: 12 }).map((_, i) => ({
+  const idx = Math.floor(Math.random() * TOTAL);
+  return Array.from({ length: TOTAL }).map((_, i) => ({
     id: `b${i}`,
     crunchy: i === idx,
     found: false,
@@ -19,7 +23,7 @@ export default function Day10CrunchHunt({ onWin }: { onWin: () => void }) {
   const [tries, setTries] = useState(0);
   const [won, setWon] = useState(false);
 
-  const remaining = useMemo(() => Math.max(0, 3 - tries), [tries]);
+  const remaining = useMemo(() => Math.max(0, MAX_TRIES - tries), [tries]);
 
   useEffect(() => {
     if (!won) return;
@@ -34,7 +38,11 @@ export default function Day10CrunchHunt({ onWin }: { onWin: () => void }) {
 
   const pick = (id: string) => {
     if (won) return;
-    if (tries >= 3) return;
+    if (tries >= MAX_TRIES) return;
+
+    // ✅ evita contar doble click en el mismo
+    const already = bags.find((b) => b.id === id)?.found;
+    if (already) return;
 
     setBags((prev) =>
       prev.map((b) => (b.id === id ? { ...b, found: true } : b)),
@@ -49,7 +57,8 @@ export default function Day10CrunchHunt({ onWin }: { onWin: () => void }) {
     <div className="mt-3">
       <div className="flex items-center justify-between gap-3">
         <div className="text-xs text-zinc-700">
-          Intentos: <span className="font-semibold">{remaining}</span> / 3
+          Intentos: <span className="font-semibold">{remaining}</span> /{" "}
+          {MAX_TRIES}
         </div>
         <button
           onClick={reset}
@@ -59,9 +68,10 @@ export default function Day10CrunchHunt({ onWin }: { onWin: () => void }) {
         </button>
       </div>
 
-      <div className="mt-3 grid grid-cols-4 gap-2">
+      {/* ✅ 5 columnas */}
+      <div className="mt-3 grid grid-cols-5 gap-2">
         {bags.map((b) => {
-          const disabled = won || tries >= 3;
+          const disabled = won || tries >= MAX_TRIES;
           const show = b.found;
 
           return (
@@ -85,7 +95,8 @@ export default function Day10CrunchHunt({ onWin }: { onWin: () => void }) {
             >
               <div className="absolute inset-0 bg-gradient-to-br from-amber-50 via-white to-white" />
               <div className="relative grid place-items-center">
-                <div className="text-xl">🟡</div>
+                {/* ✅ emoji nuevo */}
+                <div className="text-xl">🥔</div>
                 <div className="mt-1 text-[10px] text-zinc-600">
                   {show ? (b.crunchy ? "CRUNCH 😌" : "no :(") : "?"}
                 </div>
@@ -105,17 +116,15 @@ export default function Day10CrunchHunt({ onWin }: { onWin: () => void }) {
               “Lo simple contigo… siempre cae bien.”
             </div>
           </>
-        ) : tries >= 3 ? (
+        ) : tries >= MAX_TRIES ? (
           <>
             <div className="text-sm font-semibold text-zinc-900">Casi 😅</div>
             <div className="mt-1 text-sm text-zinc-700">
-              Repite y fíjate cuál “tiembla” distinto.
+              Repite y fíjate cuál es distinta.
             </div>
           </>
         ) : (
-          <div className="text-sm text-zinc-700">
-            Tip: una bolsita tiene una micro vibración visual.
-          </div>
+          <div className="text-sm text-zinc-700"></div>
         )}
       </div>
     </div>
