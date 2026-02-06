@@ -1,51 +1,81 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 
-type Layer = {
-  id: string;
+type ItemId =
+  | "hat"
+  | "scarf"
+  | "gloves"
+  | "coat"
+  | "boots"
+  | "hot"
+  | "wind"
+  | "snow";
+
+type Item = {
+  id: ItemId;
   label: string;
   emoji: string;
   added: boolean;
-  heat: number;
 };
 
-const BASE: Layer[] = [
-  { id: "scarf", label: "Bufanda", emoji: "🧣", added: false, heat: 28 },
-  { id: "hat", label: "Gorro", emoji: "🧢", added: false, heat: 22 },
-  { id: "gloves", label: "Guantes", emoji: "🧤", added: false, heat: 25 },
-  { id: "coat", label: "Abrigo", emoji: "🧥", added: false, heat: 35 },
+const ITEMS: Item[] = [
+  { id: "hat", label: "Gorro", emoji: "🧢", added: false },
+  { id: "scarf", label: "Bufanda", emoji: "🧣", added: false },
+  { id: "gloves", label: "Guantes", emoji: "🧤", added: false },
+  { id: "coat", label: "Abrigo", emoji: "🧥", added: false },
+  { id: "boots", label: "Botas", emoji: "🥾", added: false },
+  { id: "hot", label: "Chocolate", emoji: "☕️", added: false },
+  { id: "wind", label: "Viento", emoji: "🌬️", added: false },
+  { id: "snow", label: "Nieve", emoji: "🌨️", added: false },
 ];
 
 export default function Day11WarmUp({ onWin }: { onWin: () => void }) {
-  const [layers, setLayers] = useState<Layer[]>(() =>
-    BASE.map((x) => ({ ...x })),
-  );
-  const heat = useMemo(
-    () => layers.reduce((acc, l) => acc + (l.added ? l.heat : 0), 10),
-    [layers],
-  );
-  const done = heat >= 100;
+  const [items, setItems] = useState<Item[]>(ITEMS.map((i) => ({ ...i })));
+  const [draggingId, setDraggingId] = useState<ItemId | null>(null);
 
+  const addedCount = useMemo(
+    () => items.filter((i) => i.added).length,
+    [items],
+  );
+  const done = addedCount === items.length;
+
+  const wonRef = useRef(false);
   useEffect(() => {
-    if (done) onWin();
+    if (!done || wonRef.current) return;
+    wonRef.current = true;
+    onWin();
   }, [done, onWin]);
 
-  const toggle = (id: string) => {
-    if (done) return;
-    setLayers((prev) =>
-      prev.map((l) => (l.id === id ? { ...l, added: !l.added } : l)),
+  const reset = () => {
+    setItems(ITEMS.map((i) => ({ ...i })));
+    setDraggingId(null);
+    wonRef.current = false;
+  };
+
+  const addItem = (id: ItemId) => {
+    setItems((prev) =>
+      prev.map((i) => (i.id === id ? { ...i, added: true } : i)),
     );
   };
 
-  const reset = () => setLayers(BASE.map((x) => ({ ...x })));
+  const positions: Record<ItemId, { top: string; left: string }> = {
+    hat: { top: "8%", left: "50%" },
+    scarf: { top: "28%", left: "50%" },
+    gloves: { top: "40%", left: "30%" },
+    coat: { top: "48%", left: "50%" },
+    boots: { top: "78%", left: "50%" },
+    hot: { top: "52%", left: "72%" },
+    wind: { top: "20%", left: "78%" },
+    snow: { top: "18%", left: "22%" },
+  };
 
   return (
     <div className="mt-3">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between">
         <div className="text-xs text-zinc-700">
-          Calor: <span className="font-semibold">{Math.min(100, heat)}%</span>
+          Objetos: <span className="font-semibold">{addedCount}/8</span>
         </div>
         <button
           onClick={reset}
@@ -55,57 +85,75 @@ export default function Day11WarmUp({ onWin }: { onWin: () => void }) {
         </button>
       </div>
 
-      <div className="mt-3 rounded-2xl border border-zinc-200 bg-white p-4 shadow-soft">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-sm font-semibold text-zinc-900">
-              Abriga el corazón
-            </div>
-            <div className="mt-1 text-sm text-zinc-700">
-              Agrega capas hasta llegar a 100%.
-            </div>
+      <div className="mt-3 grid md:grid-cols-2 gap-4">
+        {/* EMOJIS */}
+        <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+          <div className="text-sm font-semibold text-zinc-900">
+            Arrastra los emojis
           </div>
-          <motion.div
-            className="text-3xl"
-            animate={done ? { scale: [1, 1.08, 1] } : { scale: 1 }}
-            transition={{ duration: 1.2, repeat: done ? Infinity : 0 }}
-          >
-            {done ? "🔥" : "❄️"}
-          </motion.div>
+          <div className="mt-2 grid grid-cols-4 gap-2">
+            {items.map((it) => (
+              <div
+                key={it.id}
+                draggable={!it.added}
+                onDragStart={() => setDraggingId(it.id)}
+                onDragEnd={() => setDraggingId(null)}
+                className={`rounded-2xl border bg-white p-3 grid place-items-center text-2xl cursor-grab ${
+                  it.added ? "opacity-40 cursor-not-allowed" : ""
+                }`}
+              >
+                {it.emoji}
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="mt-3 h-2 rounded-full bg-zinc-200 overflow-hidden">
-          <div
-            className="h-full bg-zinc-900"
-            style={{ width: `${Math.min(100, heat)}%` }}
+        {/* MUÑECO */}
+        <div
+          className="relative rounded-2xl border border-zinc-200 bg-white overflow-hidden h-[420px]"
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={() => {
+            if (draggingId) addItem(draggingId);
+            setDraggingId(null);
+          }}
+        >
+          {/* imagen base */}
+          <img
+            src="/images/snowman.png"
+            alt="Muñeco de nieve"
+            className="absolute inset-0 w-full h-full object-contain"
+            draggable={false}
           />
-        </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          {layers.map((l) => (
-            <button
-              key={l.id}
-              onClick={() => toggle(l.id)}
-              className={`rounded-2xl border px-3 py-3 text-sm font-semibold ${
-                l.added
-                  ? "border-zinc-900 bg-zinc-900 text-white"
-                  : "border-zinc-200 bg-white text-zinc-900"
-              }`}
-            >
-              <span className="mr-2">{l.emoji}</span>
-              {l.label}
-            </button>
-          ))}
-        </div>
+          {/* overlays */}
+          <AnimatePresence>
+            {items
+              .filter((i) => i.added)
+              .map((i) => (
+                <motion.div
+                  key={i.id}
+                  className="absolute text-3xl"
+                  style={{
+                    top: positions[i.id].top,
+                    left: positions[i.id].left,
+                    transform: "translate(-50%, -50%)",
+                  }}
+                  initial={{ scale: 0.6, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 260, damping: 18 }}
+                >
+                  {i.emoji}
+                </motion.div>
+              ))}
+          </AnimatePresence>
 
-        <div className="mt-4 text-sm text-zinc-700">
-          {done ? (
-            <>
-              “Si hace frío… yo te abrigo.”{" "}
-              <span className="font-semibold">🤍</span>
-            </>
-          ) : (
-            "Tip: el abrigo calienta bastante 😉"
+          {/* mensaje final */}
+          {done && (
+            <div className="absolute bottom-3 left-3 right-3 rounded-2xl bg-white/90 border border-zinc-200 p-4 text-center">
+              <div className="text-sm font-semibold">
+                “Si hace frío… yo te abrigo.” 🤍
+              </div>
+            </div>
           )}
         </div>
       </div>
