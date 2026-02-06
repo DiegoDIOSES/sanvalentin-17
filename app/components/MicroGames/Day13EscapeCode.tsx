@@ -11,7 +11,7 @@ type DigitState = {
 };
 
 const CODE = "2304";
-const TOTAL_MS = 6000;
+const TOTAL_MS = 15000;
 
 function clamp(n: number, a: number, b: number) {
   return Math.max(a, Math.min(b, n));
@@ -314,7 +314,7 @@ export default function Day13EscapeCode({ onWin }: { onWin: () => void }) {
             Vis a Vis — Candado (4 dígitos)
           </div>
           <div className="mt-1 text-sm text-zinc-700">
-            4 retos. 6 segundos. Código final:{" "}
+            4 retos. 15 segundos. Código final:{" "}
             <span className="font-semibold">{CODE}</span>
           </div>
         </div>
