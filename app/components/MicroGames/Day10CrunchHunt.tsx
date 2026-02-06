@@ -5,9 +5,9 @@ import { motion } from "framer-motion";
 
 type Bag = { id: string; crunchy: boolean; found: boolean };
 
-const GRID = 5; // ✅ 5x5 (antes 4x3)
+const GRID = 5;
 const TOTAL = GRID * GRID;
-const MAX_TRIES = 4; // ✅ antes 3
+const MAX_TRIES = 5;
 
 function makeBags() {
   const idx = Math.floor(Math.random() * TOTAL);
@@ -95,7 +95,6 @@ export default function Day10CrunchHunt({ onWin }: { onWin: () => void }) {
             >
               <div className="absolute inset-0 bg-gradient-to-br from-amber-50 via-white to-white" />
               <div className="relative grid place-items-center">
-                {/* ✅ emoji nuevo */}
                 <div className="text-xl">🥔</div>
                 <div className="mt-1 text-[10px] text-zinc-600">
                   {show ? (b.crunchy ? "CRUNCH 😌" : "no :(") : "?"}
