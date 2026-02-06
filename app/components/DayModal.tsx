@@ -294,7 +294,7 @@ export default function DayModal({
               <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
                 <div className="text-sm font-semibold">Mini juego</div>
                 <p className="mt-1 text-xs text-zinc-600">
-                  Solo una bolsita vibra distinto. Tienes 3 intentos 😉
+                  Solo una papita es distinta. Tienes 5 intentos 😉
                 </p>
                 <Day10CrunchHunt onWin={onWin} />
               </div>
