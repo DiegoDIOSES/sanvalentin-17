@@ -11,6 +11,7 @@ type DigitState = {
 };
 
 const CODE = "2304";
+const TOTAL_MS = 6000;
 
 function clamp(n: number, a: number, b: number) {
   return Math.max(a, Math.min(b, n));
@@ -19,19 +20,20 @@ function clamp(n: number, a: number, b: number) {
 /* =========================
    SCRATCH CARD (CANVAS)
 ========================= */
-
 function ScratchCard({
   width,
   height,
   coverColor,
   children,
   onRevealed,
+  disabled,
 }: {
   width: number;
   height: number;
   coverColor?: string;
   children: React.ReactNode;
   onRevealed: () => void;
+  disabled?: boolean;
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const drawingRef = useRef(false);
@@ -49,7 +51,7 @@ function ScratchCard({
     ctx.fillStyle = coverColor ?? "#111827";
     ctx.fillRect(0, 0, width, height);
 
-    // tiny noise for texture
+    // light noise for texture
     const img = ctx.getImageData(0, 0, width, height);
     for (let i = 0; i < img.data.length; i += 4) {
       const n = (Math.random() * 18 - 9) | 0;
@@ -117,7 +119,9 @@ function ScratchCard({
 
   return (
     <div
-      className="relative rounded-3xl border border-zinc-200 bg-white overflow-hidden shadow-soft"
+      className={`relative rounded-3xl border border-zinc-200 bg-white overflow-hidden shadow-soft ${
+        disabled ? "opacity-70" : ""
+      }`}
       style={{ width, height }}
     >
       <div className="absolute inset-0 grid place-items-center">{children}</div>
@@ -126,23 +130,27 @@ function ScratchCard({
         ref={canvasRef}
         width={width}
         height={height}
-        className="absolute inset-0 touch-none cursor-pointer"
+        className={`absolute inset-0 touch-none ${disabled ? "pointer-events-none" : "cursor-pointer"}`}
         onPointerDown={(e) => {
+          if (disabled) return;
           drawingRef.current = true;
           (e.currentTarget as HTMLCanvasElement).setPointerCapture(e.pointerId);
           const p = toLocal(e);
           eraseAt(p.x, p.y);
         }}
         onPointerMove={(e) => {
+          if (disabled) return;
           if (!drawingRef.current) return;
           const p = toLocal(e);
           eraseAt(p.x, p.y);
         }}
         onPointerUp={() => {
+          if (disabled) return;
           drawingRef.current = false;
           maybeReveal();
         }}
         onPointerCancel={() => {
+          if (disabled) return;
           drawingRef.current = false;
           maybeReveal();
         }}
@@ -152,9 +160,8 @@ function ScratchCard({
 }
 
 /* =========================
-   DAY 13
+   DAY 13 (6s TOTAL)
 ========================= */
-
 export default function Day13EscapeCode({ onWin }: { onWin: () => void }) {
   const [digits, setDigits] = useState<DigitState>({
     d1: null,
@@ -165,9 +172,13 @@ export default function Day13EscapeCode({ onWin }: { onWin: () => void }) {
 
   const [won, setWon] = useState(false);
 
+  // ⏱ timer control
+  const [started, setStarted] = useState(false);
+  const [msLeft, setMsLeft] = useState(TOTAL_MS);
+  const [expired, setExpired] = useState(false);
+
   // Step 2 (math) -> answer must be 3
   const math = useMemo(() => {
-    // eslint-disable-next-line react-hooks/purity
     const b = 3 + Math.floor(Math.random() * 5); // 3..7
     const a = b + 3; // ensures a-b=3
     return { a, b, ans: 3 };
@@ -183,32 +194,26 @@ export default function Day13EscapeCode({ onWin }: { onWin: () => void }) {
   // Step 4 (key) -> unlock 4
   const [pickedKey, setPickedKey] = useState<string | null>(null);
   const keys = useMemo(() => {
-    // one correct, others wrong
     const pool = [
-      { id: "k1", emoji: "🗝️", tag: "old" },
-      { id: "k2", emoji: "🔑", tag: "classic" },
-      { id: "k3", emoji: "🗝️", tag: "thin" },
-      { id: "k4", emoji: "🔑", tag: "gold" },
-      { id: "k5", emoji: "🗝️", tag: "heavy" },
-      { id: "k6", emoji: "🔑", tag: "small" },
+      { id: "k1", emoji: "🗝️" },
+      { id: "k2", emoji: "🔑" },
+      { id: "k3", emoji: "🗝️" },
+      { id: "k4", emoji: "🔑" },
+      { id: "k5", emoji: "🗝️" },
+      { id: "k6", emoji: "🔑" },
     ];
 
-    // stable shuffle per mount
     const arr = [...pool];
     for (let i = arr.length - 1; i > 0; i--) {
-      // eslint-disable-next-line react-hooks/purity
       const j = Math.floor(Math.random() * (i + 1));
       [arr[i], arr[j]] = [arr[j], arr[i]];
     }
 
-    // choose a correct key index but keep it subtle
-    // eslint-disable-next-line react-hooks/purity
     const correctIndex = Math.floor(Math.random() * arr.length);
-    return {
-      list: arr,
-      correctId: arr[correctIndex].id,
-    };
+    return { list: arr, correctId: arr[correctIndex].id };
   }, []);
+
+  const lockedUI = !started || expired || won;
 
   const codeSoFar = useMemo(() => {
     const a = digits.d1 ?? "•";
@@ -218,10 +223,34 @@ export default function Day13EscapeCode({ onWin }: { onWin: () => void }) {
     return `${a}${b}${c}${d}`;
   }, [digits]);
 
-  const allReady = useMemo(() => {
-    return digits.d1 && digits.d2 && digits.d3 && digits.d4;
-  }, [digits]);
+  const allReady = useMemo(
+    () => digits.d1 && digits.d2 && digits.d3 && digits.d4,
+    [digits],
+  );
 
+  // ⏱ Countdown
+  useEffect(() => {
+    if (!started) return;
+    if (expired || won) return;
+
+    const t0 = performance.now();
+    const startLeft = msLeft;
+
+    const id = window.setInterval(() => {
+      const dt = performance.now() - t0;
+      const next = Math.max(0, Math.round(startLeft - dt));
+      setMsLeft(next);
+      if (next <= 0) {
+        setExpired(true);
+        window.clearInterval(id);
+      }
+    }, 50);
+
+    return () => window.clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [started]);
+
+  // Win check
   useEffect(() => {
     if (!allReady) return;
     if (won) return;
@@ -233,10 +262,11 @@ export default function Day13EscapeCode({ onWin }: { onWin: () => void }) {
 
   // auto-unlock lock (0)
   useEffect(() => {
+    if (lockedUI) return;
     if (digits.d3) return;
     const ok = Math.abs(dial - LOCK_TARGET) <= LOCK_TOL;
     if (ok) setDigits((p) => ({ ...p, d3: "0" }));
-  }, [dial, digits.d3]);
+  }, [dial, digits.d3, lockedUI]);
 
   const reset = () => {
     setDigits({ d1: null, d2: null, d3: null, d4: null });
@@ -244,21 +274,37 @@ export default function Day13EscapeCode({ onWin }: { onWin: () => void }) {
     setMathInput("");
     setDial(0.55);
     setPickedKey(null);
+    setStarted(false);
+    setExpired(false);
+    setMsLeft(TOTAL_MS);
+  };
+
+  const start = () => {
+    if (started) return;
+    setStarted(true);
+    setExpired(false);
+    setWon(false);
+    setMsLeft(TOTAL_MS);
   };
 
   const doMath = () => {
+    if (lockedUI) return;
     if (digits.d2) return;
     const val = Number(mathInput);
     if (val === math.ans) setDigits((p) => ({ ...p, d2: "3" }));
   };
 
   const pickKey = (id: string) => {
+    if (lockedUI) return;
     if (digits.d4) return;
     setPickedKey(id);
-    if (id === keys.correctId) {
-      setDigits((p) => ({ ...p, d4: "4" }));
-    }
+    if (id === keys.correctId) setDigits((p) => ({ ...p, d4: "4" }));
   };
+
+  const timerLabel = useMemo(() => {
+    const s = Math.ceil(msLeft / 1000);
+    return `${s}s`;
+  }, [msLeft]);
 
   return (
     <div className="mt-3 rounded-2xl border border-zinc-200 bg-white p-4 shadow-soft">
@@ -268,17 +314,49 @@ export default function Day13EscapeCode({ onWin }: { onWin: () => void }) {
             Vis a Vis — Candado (4 dígitos)
           </div>
           <div className="mt-1 text-sm text-zinc-700">
-            4 retos. Cada uno guarda un número. Al final… se abre.
+            4 retos. 6 segundos. Código final:{" "}
+            <span className="font-semibold">{CODE}</span>
           </div>
         </div>
 
-        <button
-          onClick={reset}
-          className="rounded-xl bg-white border border-zinc-200 px-3 py-2 text-xs font-semibold"
-        >
-          Reiniciar 🔁
-        </button>
+        <div className="flex items-center gap-2">
+          <div
+            className={`text-xs px-3 py-2 rounded-2xl border ${
+              expired
+                ? "bg-rose-50 border-rose-200 text-rose-700"
+                : won
+                  ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                  : started
+                    ? "bg-white border-zinc-200 text-zinc-700"
+                    : "bg-zinc-50 border-zinc-200 text-zinc-600"
+            }`}
+          >
+            ⏱ {timerLabel}
+          </div>
+
+          <button
+            onClick={reset}
+            className="rounded-xl bg-white border border-zinc-200 px-3 py-2 text-xs font-semibold"
+          >
+            Reiniciar 🔁
+          </button>
+        </div>
       </div>
+
+      {/* Start gate */}
+      {!started && !won && (
+        <div className="mt-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 flex items-center justify-between gap-3">
+          <div className="text-sm text-zinc-700">
+            Pulsa <span className="font-semibold">Empezar</span> y tienes 6s.
+          </div>
+          <button
+            onClick={start}
+            className="rounded-2xl bg-zinc-900 text-white px-4 py-3 text-sm font-semibold"
+          >
+            Empezar →
+          </button>
+        </div>
+      )}
 
       {/* Code display */}
       <div className="mt-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 flex items-center justify-between">
@@ -287,6 +365,33 @@ export default function Day13EscapeCode({ onWin }: { onWin: () => void }) {
           {codeSoFar}
         </div>
       </div>
+
+      {/* Expired */}
+      <AnimatePresence>
+        {expired && !won && (
+          <motion.div
+            className="mt-3 rounded-2xl border border-rose-200 bg-rose-50 p-4"
+            initial={{ y: 10, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 10, opacity: 0 }}
+          >
+            <div className="text-sm font-semibold text-rose-800">
+              Se acabó el tiempo 😅
+            </div>
+            <div className="mt-1 text-sm text-rose-700">
+              Reintenta: ahora ya sabes dónde está cada cosa.
+            </div>
+            <div className="mt-3">
+              <button
+                onClick={reset}
+                className="rounded-2xl bg-zinc-900 text-white px-4 py-3 text-sm font-semibold"
+              >
+                Reintentar →
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Challenges */}
       <div className="mt-3 grid gap-3 md:grid-cols-2">
@@ -300,7 +405,7 @@ export default function Day13EscapeCode({ onWin }: { onWin: () => void }) {
           </div>
 
           <div className="mt-2 text-xs text-zinc-600">
-            Raspa el panel para revelar el primer dígito.
+            Raspa para revelar el primer dígito.
           </div>
 
           <div className="mt-3 flex justify-center">
@@ -308,6 +413,7 @@ export default function Day13EscapeCode({ onWin }: { onWin: () => void }) {
               width={260}
               height={140}
               coverColor="#111827"
+              disabled={lockedUI || !!digits.d1}
               onRevealed={() => setDigits((p) => ({ ...p, d1: "2" }))}
             >
               <div className="text-center">
@@ -330,10 +436,12 @@ export default function Day13EscapeCode({ onWin }: { onWin: () => void }) {
           </div>
 
           <div className="mt-2 text-xs text-zinc-600">
-            Resuelve la resta para obtener el segundo dígito.
+            Resuelve la resta para el segundo dígito.
           </div>
 
-          <div className="mt-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+          <div
+            className={`mt-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 ${lockedUI ? "opacity-70" : ""}`}
+          >
             <div className="text-sm font-semibold text-zinc-900">
               {math.a} − {math.b} = ?
             </div>
@@ -346,23 +454,17 @@ export default function Day13EscapeCode({ onWin }: { onWin: () => void }) {
                 }
                 placeholder="__"
                 className="w-20 rounded-2xl border border-zinc-200 px-4 py-3 text-sm font-semibold text-center"
-                disabled={!!digits.d2}
+                disabled={lockedUI || !!digits.d2}
               />
 
               <button
                 onClick={doMath}
                 className="flex-1 rounded-2xl bg-zinc-900 text-white px-4 py-3 text-sm font-semibold disabled:opacity-60"
-                disabled={!!digits.d2}
+                disabled={lockedUI || !!digits.d2}
               >
                 Confirmar
               </button>
             </div>
-
-            {!digits.d2 && (
-              <div className="mt-2 text-[11px] text-zinc-600">
-                Tip: es un número chiquito 😉
-              </div>
-            )}
           </div>
         </div>
 
@@ -370,16 +472,18 @@ export default function Day13EscapeCode({ onWin }: { onWin: () => void }) {
         <div className="rounded-2xl border border-zinc-200 bg-white p-4">
           <div className="flex items-center justify-between">
             <div className="text-sm font-semibold text-zinc-900">
-              Reto 3: Alinear la cerradura
+              Reto 3: Alinear cerradura
             </div>
             <Pill ok={!!digits.d3} text={digits.d3 ? "Listo" : "Pendiente"} />
           </div>
 
           <div className="mt-2 text-xs text-zinc-600">
-            Ajusta el dial hasta que el candado “encaje”.
+            Mueve el dial hasta que “encaje”.
           </div>
 
-          <div className="mt-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+          <div
+            className={`mt-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 ${lockedUI ? "opacity-70" : ""}`}
+          >
             <div className="flex items-center justify-between">
               <div className="text-sm font-semibold text-zinc-900">🔒</div>
               <div className="text-[11px] text-zinc-600">
@@ -394,9 +498,7 @@ export default function Day13EscapeCode({ onWin }: { onWin: () => void }) {
             </div>
 
             <div className="mt-3">
-              {/* visual track */}
               <div className="relative h-10 rounded-2xl border border-zinc-200 bg-white overflow-hidden">
-                {/* target zone */}
                 <div
                   className="absolute top-0 bottom-0 rounded-xl bg-emerald-200/50"
                   style={{
@@ -404,7 +506,6 @@ export default function Day13EscapeCode({ onWin }: { onWin: () => void }) {
                     width: `${LOCK_TOL * 2 * 100}%`,
                   }}
                 />
-                {/* dial marker */}
                 <motion.div
                   className="absolute top-1/2 -translate-y-1/2 h-7 w-7 rounded-2xl bg-zinc-900 shadow-soft"
                   animate={{ left: `calc(${dial * 100}% - 14px)` }}
@@ -419,13 +520,9 @@ export default function Day13EscapeCode({ onWin }: { onWin: () => void }) {
                 step={0.001}
                 value={dial}
                 onChange={(e) => setDial(Number(e.target.value))}
-                disabled={!!digits.d3}
+                disabled={lockedUI || !!digits.d3}
                 className="mt-3 w-full"
               />
-
-              <div className="mt-2 text-[11px] text-zinc-600">
-                Tip: cuando cae en el lugar… se siente “quieto”.
-              </div>
             </div>
           </div>
         </div>
@@ -434,16 +531,18 @@ export default function Day13EscapeCode({ onWin }: { onWin: () => void }) {
         <div className="rounded-2xl border border-zinc-200 bg-white p-4">
           <div className="flex items-center justify-between">
             <div className="text-sm font-semibold text-zinc-900">
-              Reto 4: La llave correcta
+              Reto 4: Llave correcta
             </div>
             <Pill ok={!!digits.d4} text={digits.d4 ? "Listo" : "Pendiente"} />
           </div>
 
           <div className="mt-2 text-xs text-zinc-600">
-            Elige la llave que abre el candado.
+            Elige la llave que abre.
           </div>
 
-          <div className="mt-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+          <div
+            className={`mt-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 ${lockedUI ? "opacity-70" : ""}`}
+          >
             <div className="flex items-center justify-between">
               <div className="text-sm font-semibold text-zinc-900">
                 🧷 Candado
@@ -472,7 +571,7 @@ export default function Day13EscapeCode({ onWin }: { onWin: () => void }) {
             <div className="mt-3 grid grid-cols-3 gap-2">
               {keys.list.map((k) => {
                 const picked = pickedKey === k.id;
-                const disabled = !!digits.d4;
+                const disabled = lockedUI || !!digits.d4;
 
                 return (
                   <button
@@ -496,12 +595,6 @@ export default function Day13EscapeCode({ onWin }: { onWin: () => void }) {
                 );
               })}
             </div>
-
-            {!digits.d4 && (
-              <div className="mt-2 text-[11px] text-zinc-600">
-                Tip: no es la más “bonita”… es la que encaja.
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -510,18 +603,18 @@ export default function Day13EscapeCode({ onWin }: { onWin: () => void }) {
       <AnimatePresence>
         {won && (
           <motion.div
-            className="mt-4 rounded-2xl border border-zinc-200 bg-white p-4"
+            className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4"
             initial={{ y: 10, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 10, opacity: 0 }}
           >
-            <div className="text-sm font-semibold text-zinc-900">
+            <div className="text-sm font-semibold text-emerald-800">
               ¡Abierto! ✔
             </div>
-            <div className="mt-1 text-sm text-zinc-700">
+            <div className="mt-1 text-sm text-emerald-700">
               “Siempre encuentras la salida… y eso me encanta.”
             </div>
-            <div className="mt-2 text-[11px] text-zinc-600">
+            <div className="mt-2 text-[11px] text-emerald-700">
               Código final: <span className="font-semibold">{CODE}</span>
             </div>
           </motion.div>
@@ -530,10 +623,6 @@ export default function Day13EscapeCode({ onWin }: { onWin: () => void }) {
     </div>
   );
 }
-
-/* =========================
-   UI bits
-========================= */
 
 function Pill({ ok, text }: { ok: boolean; text: string }) {
   return (
