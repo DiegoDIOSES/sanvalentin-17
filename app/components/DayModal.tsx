@@ -48,7 +48,7 @@ import Day13VisAVis from "./DayScenes/Day13VisAVis";
 import Day13EscapeCode from "./MicroGames/Day13EscapeCode";
 
 import Day14Troll from "./DayScenes/Day14Troll";
-import Day14FogTremor from "./MicroGames/Day14TrollQuest";
+import Day14TrollQuest from "./MicroGames/Day14TrollQuest";
 
 import Day15WhatsApp from "./DayScenes/Day15WhatsApp";
 import Day15OrderChat from "./MicroGames/Day15OrderChat";
