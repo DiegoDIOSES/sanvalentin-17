@@ -31,9 +31,19 @@ const ITEMS: Item[] = [
   { id: "snow", label: "Nieve", emoji: "🌨️", added: false },
 ];
 
+type DragState = {
+  id: ItemId;
+  emoji: string;
+  x: number;
+  y: number;
+  active: boolean;
+} | null;
+
 export default function Day11WarmUp({ onWin }: { onWin: () => void }) {
   const [items, setItems] = useState<Item[]>(ITEMS.map((i) => ({ ...i })));
-  const [draggingId, setDraggingId] = useState<ItemId | null>(null);
+  const [drag, setDrag] = useState<DragState>(null);
+
+  const dropRef = useRef<HTMLDivElement | null>(null);
 
   const addedCount = useMemo(
     () => items.filter((i) => i.added).length,
@@ -50,7 +60,7 @@ export default function Day11WarmUp({ onWin }: { onWin: () => void }) {
 
   const reset = () => {
     setItems(ITEMS.map((i) => ({ ...i })));
-    setDraggingId(null);
+    setDrag(null);
     wonRef.current = false;
   };
 
@@ -71,6 +81,57 @@ export default function Day11WarmUp({ onWin }: { onWin: () => void }) {
     snow: { top: "18%", left: "22%" },
   };
 
+  const isInsideDrop = (clientX: number, clientY: number) => {
+    const el = dropRef.current;
+    if (!el) return false;
+    const r = el.getBoundingClientRect();
+    return (
+      clientX >= r.left &&
+      clientX <= r.right &&
+      clientY >= r.top &&
+      clientY <= r.bottom
+    );
+  };
+
+  const startDrag = (id: ItemId, emoji: string) => (e: React.PointerEvent) => {
+    const it = items.find((x) => x.id === id);
+    if (!it || it.added) return;
+
+    // importante: evitar selección / scroll raro
+    e.preventDefault();
+
+    // capturar pointer para seguir moviendo aunque el dedo salga del botón
+    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+
+    setDrag({
+      id,
+      emoji,
+      x: e.clientX,
+      y: e.clientY,
+      active: true,
+    });
+  };
+
+  const moveDrag = (e: React.PointerEvent) => {
+    if (!drag?.active) return;
+    e.preventDefault();
+    setDrag((prev) =>
+      prev ? { ...prev, x: e.clientX, y: e.clientY } : prev,
+    );
+  };
+
+  const endDrag = (e: React.PointerEvent) => {
+    if (!drag?.active) return;
+    e.preventDefault();
+
+    const ok = isInsideDrop(e.clientX, e.clientY);
+    const droppedId = drag.id;
+
+    setDrag(null);
+
+    if (ok) addItem(droppedId);
+  };
+
   return (
     <div className="mt-3">
       <div className="flex items-center justify-between">
@@ -89,33 +150,51 @@ export default function Day11WarmUp({ onWin }: { onWin: () => void }) {
         {/* EMOJIS */}
         <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
           <div className="text-sm font-semibold text-zinc-900">
-            Manten presionado el emoji y arrástralo al muñeco de nieve ⛄️
+            Mantén presionado el emoji y arrástralo al muñeco de nieve ⛄️
           </div>
+
           <div className="mt-2 grid grid-cols-4 gap-2">
             {items.map((it) => (
-              <div
+              <button
                 key={it.id}
-                draggable={!it.added}
-                onDragStart={() => setDraggingId(it.id)}
-                onDragEnd={() => setDraggingId(null)}
-                className={`rounded-2xl border bg-white p-3 grid place-items-center text-2xl cursor-grab ${
-                  it.added ? "opacity-40 cursor-not-allowed" : ""
+                type="button"
+                onPointerDown={startDrag(it.id, it.emoji)}
+                onPointerMove={moveDrag}
+                onPointerUp={endDrag}
+                onPointerCancel={() => setDrag(null)}
+                onContextMenu={(e) => e.preventDefault()} // iOS long-press menu
+                className={`rounded-2xl border bg-white p-3 grid place-items-center text-2xl ${
+                  it.added ? "opacity-40" : "active:scale-[0.99]"
                 }`}
+                disabled={it.added}
+                style={{
+                  touchAction: "none", // clave: permite drag suave en mobile
+                  WebkitUserSelect: "none",
+                  userSelect: "none",
+                  WebkitTouchCallout: "none", // clave: evita “copiar”
+                }}
               >
                 {it.emoji}
-              </div>
+              </button>
             ))}
+          </div>
+
+          <div className="mt-3 text-[11px] text-zinc-600">
+            Tip: suelta el emoji encima del muñeco para colocarlo.
           </div>
         </div>
 
         {/* MUÑECO */}
         <div
+          ref={dropRef}
           className="relative rounded-2xl border border-zinc-200 bg-white overflow-hidden h-[420px]"
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={() => {
-            if (draggingId) addItem(draggingId);
-            setDraggingId(null);
+          style={{
+            touchAction: "none",
+            WebkitUserSelect: "none",
+            userSelect: "none",
+            WebkitTouchCallout: "none",
           }}
+          onContextMenu={(e) => e.preventDefault()}
         >
           {/* imagen base */}
           <img
@@ -147,6 +226,17 @@ export default function Day11WarmUp({ onWin }: { onWin: () => void }) {
               ))}
           </AnimatePresence>
 
+          {/* highlight si estás encima */}
+          {drag?.active && (
+            <div
+              className={`absolute inset-0 pointer-events-none transition ${
+                drag ? "opacity-100" : "opacity-0"
+              }`}
+            >
+              <div className="absolute inset-3 rounded-2xl border border-emerald-300/60 bg-emerald-200/10" />
+            </div>
+          )}
+
           {/* mensaje final */}
           {done && (
             <div className="absolute bottom-3 left-3 right-3 rounded-2xl bg-white/90 border border-zinc-200 p-4 text-center">
@@ -157,6 +247,27 @@ export default function Day11WarmUp({ onWin }: { onWin: () => void }) {
           )}
         </div>
       </div>
+
+      {/* EMOJI FLOTANTE (drag ghost) */}
+      <AnimatePresence>
+        {drag?.active && (
+          <motion.div
+            className="fixed z-[9999] text-4xl pointer-events-none"
+            style={{
+              left: drag.x,
+              top: drag.y,
+              transform: "translate(-50%, -60%)",
+              WebkitUserSelect: "none",
+              userSelect: "none",
+            }}
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+          >
+            {drag.emoji}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
