@@ -87,10 +87,14 @@ export default function Day14TrollQuest({ onWin }: { onWin: () => void }) {
   const [rocks, setRocks] = useState<{ id: string; lane: -1 | 1; t: number }[]>(
     [],
   );
+
   const [escapeMs, setEscapeMs] = useState(5200);
   const escapeDone = escapeMs <= 0;
 
   const swipeStartX = useRef<number | null>(null);
+
+  // ✅ medimos alto real del “arena” para colisión por pixeles
+  const arenaHRef = useRef<number>(320);
 
   // ✅ loop del Acto 3 (con inicialización integrada)
   useEffect(() => {
@@ -103,8 +107,18 @@ export default function Day14TrollQuest({ onWin }: { onWin: () => void }) {
     const rockEvery = 1150;
 
     // velocidad un pelín más suave para dar margen real
-    const speed = 1.25;
+    const speed = 1.25; // t per tick
     const tick = 40;
+
+    // dibujo: y = t * 3.1 px
+    const pxPerT = 3.1;
+
+    // sizes (de tu UI actual)
+    const rockSize = 36; // h-9 w-9
+    const playerSize = 48; // h-12 w-12
+
+    // “jugador” está a bottom-[76px] o bottom-[86px] (depende del alto)
+    const playerBottomOffset = () => (arenaHRef.current >= 360 ? 86 : 76);
 
     // ✅ evita 2 rocas seguidas en el mismo carril
     let lastLane: -1 | 1 | null = null;
@@ -118,7 +132,6 @@ export default function Day14TrollQuest({ onWin }: { onWin: () => void }) {
     const spawn = window.setInterval(() => {
       if (!alive) return;
 
-      // Initialize on first interval tick
       if (!initialized) {
         initialized = true;
         setRocks([]);
@@ -144,16 +157,34 @@ export default function Day14TrollQuest({ onWin }: { onWin: () => void }) {
       setRocks((prev) => {
         const next = prev
           .map((r) => ({ ...r, t: r.t + speed }))
-          .filter((r) => r.t < 100);
+          .filter((r) => r.t < 130); // un poquito más de margen
 
-        // ✅ colisión más justa (ventana más tarde)
+        const h = arenaHRef.current || 320;
+
+        // centro del jugador en px (Y)
+        const playerCenterY =
+          h - playerBottomOffset() - playerSize / 2;
+
         const currentLane = laneRef.current;
-        const danger = next.find(
-          (r) => r.t > 90 && r.t < 98 && r.lane === currentLane,
-        );
+
+        // ✅ colisión REAL por pixeles (centros + tolerancia)
+        const danger = next.find((r) => {
+          if (r.lane !== currentLane) return false;
+
+          // En tu render: top:-18px y luego y = t*3.1
+          // Centro roca: (-18 + rockSize/2) + y = (-18 + 18) + y = y
+          const rockCenterY = r.t * pxPerT;
+
+          const dist = Math.abs(rockCenterY - playerCenterY);
+
+          // margen: si quieres más “perdón”, sube 10 -> 14
+          const forgiving = 12;
+
+          const hitDistance = (rockSize + playerSize) / 2 - forgiving;
+          return dist < hitDistance;
+        });
 
         if (danger) {
-          // reinicia escape rápido
           setEscapeMs(5200);
           return [];
         }
@@ -321,6 +352,8 @@ export default function Day14TrollQuest({ onWin }: { onWin: () => void }) {
                       swipeStartX.current = null;
                       if (Math.abs(dx) > 24) setLane(dx > 0 ? 1 : -1);
                     }}
+                    // ✅ actualiza alto real del área
+                    onArenaHeight={(h) => (arenaHRef.current = h)}
                   />
                 </motion.div>
               )}
@@ -389,7 +422,7 @@ function Act1DragBag({
               Elige 3 cosas
             </div>
             <div className="mt-1 text-xs text-zinc-600">
-              AMantén presionado para arrastar las cosas y equipar tu mochila.
+              Arrastra a la mochila (o toca para añadir).
             </div>
           </div>
           <div className="text-xs px-3 py-1 rounded-full border bg-zinc-50 border-zinc-200 text-zinc-700">
@@ -426,9 +459,7 @@ function Act1DragBag({
         <div className="flex items-center justify-between">
           <div>
             <div className="text-sm font-semibold text-zinc-900">Mochila</div>
-            <div className="mt-1 text-xs text-zinc-600">
-              Llénala para seguir.
-            </div>
+            <div className="mt-1 text-xs text-zinc-600">Llénala para seguir.</div>
           </div>
           <div className="text-2xl">🎒</div>
         </div>
@@ -447,9 +478,7 @@ function Act1DragBag({
               title={id ? "Toca para quitar" : "Vacío"}
             >
               <div className="text-2xl">{id ? "✓" : "—"}</div>
-              <div className="mt-1 text-[10px] opacity-90">
-                {id ? "Listo" : "Slot"}
-              </div>
+              <div className="mt-1 text-[10px] opacity-90">{id ? "Listo" : "Slot"}</div>
             </button>
           ))}
         </div>
@@ -466,8 +495,7 @@ function Act1DragBag({
                 Perfecto. Ya estás listo.
               </div>
               <div className="mt-1 text-sm text-emerald-700">
-                A veces lo importante es{" "}
-                <span className="font-semibold">estar preparado</span>.
+                A veces lo importante es <span className="font-semibold">estar preparado</span>.
               </div>
             </motion.div>
           )}
@@ -502,9 +530,7 @@ function Act2Ritual({
     <div className="rounded-2xl border border-zinc-200 bg-white p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="text-sm font-semibold text-zinc-900">
-            Ritual del valle
-          </div>
+          <div className="text-sm font-semibold text-zinc-900">Ritual del valle</div>
           <div className="mt-1 text-xs text-zinc-600">
             Toca las runas en orden. Si fallas, se reinicia.
           </div>
@@ -520,23 +546,15 @@ function Act2Ritual({
 
       <div className="mt-3 flex items-center justify-between">
         <div className="text-xs text-zinc-700">
-          Progreso:{" "}
-          <span className="font-semibold">
-            {seq.length}/{pattern.length}
-          </span>
+          Progreso: <span className="font-semibold">{seq.length}/{pattern.length}</span>
         </div>
         <div className="text-xs px-3 py-1 rounded-full border bg-zinc-50 border-zinc-200 text-zinc-700">
-          siguiente:{" "}
-          <span className="font-semibold">{nextId ? "🧿" : "—"}</span>
+          siguiente: <span className="font-semibold">{nextId ? "🧿" : "—"}</span>
         </div>
       </div>
 
       <div className="mt-4 relative h-[240px] md:h-[280px] rounded-2xl border border-zinc-200 bg-gradient-to-br from-zinc-50 via-white to-emerald-50 overflow-hidden">
-        <svg
-          className="absolute inset-0"
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-        >
+        <svg className="absolute inset-0" viewBox="0 0 100 100" preserveAspectRatio="none">
           {seq.map((id, i) => {
             if (i === 0) return null;
             const a = nodes.find((n) => n.id === seq[i - 1])!;
@@ -572,16 +590,8 @@ function Act2Ritual({
                     : "border-zinc-200 bg-white text-zinc-800"
               }`}
               style={{ left: `${n.x}%`, top: `${n.y}%`, width: 54, height: 54 }}
-              animate={
-                active
-                  ? { y: [0, -3, 0], rotate: [0, 1, 0, -1, 0] }
-                  : { y: 0, rotate: 0 }
-              }
-              transition={{
-                duration: 1.8,
-                repeat: active ? Infinity : 0,
-                ease: "easeInOut",
-              }}
+              animate={active ? { y: [0, -3, 0], rotate: [0, 1, 0, -1, 0] } : { y: 0, rotate: 0 }}
+              transition={{ duration: 1.8, repeat: active ? Infinity : 0, ease: "easeInOut" }}
             >
               <div className="text-xl">{picked ? "✓" : "🧿"}</div>
             </motion.button>
@@ -597,12 +607,9 @@ function Act2Ritual({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 8 }}
           >
-            <div className="text-sm font-semibold text-emerald-800">
-              Ritual completo.
-            </div>
+            <div className="text-sm font-semibold text-emerald-800">Ritual completo.</div>
             <div className="mt-1 text-sm text-emerald-700">
-              Cuando tú estás…{" "}
-              <span className="font-semibold">todo encaja</span>.
+              Cuando tú estás… <span className="font-semibold">todo encaja</span>.
             </div>
           </motion.div>
         )}
@@ -622,6 +629,7 @@ function Act3Escape({
   ms,
   onSwipeStart,
   onSwipeEnd,
+  onArenaHeight,
 }: {
   lane: -1 | 1;
   setLane: (l: -1 | 1) => void;
@@ -629,8 +637,25 @@ function Act3Escape({
   ms: number;
   onSwipeStart: (x: number) => void;
   onSwipeEnd: (x: number) => void;
+  onArenaHeight: (h: number) => void;
 }) {
   const pct = clamp(ms / 5200, 0, 1);
+  const arenaRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const el = arenaRef.current;
+    if (!el) return;
+
+    const measure = () => {
+      const h = el.getBoundingClientRect().height;
+      if (h) onArenaHeight(h);
+    };
+
+    measure();
+
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [onArenaHeight]);
 
   return (
     <div className="rounded-2xl border border-zinc-200 bg-white p-4">
@@ -645,13 +670,11 @@ function Act3Escape({
       </div>
 
       <div className="mt-3 h-2 rounded-full bg-zinc-200 overflow-hidden">
-        <div
-          className="h-full bg-zinc-900"
-          style={{ width: `${pct * 100}%` }}
-        />
+        <div className="h-full bg-zinc-900" style={{ width: `${pct * 100}%` }} />
       </div>
 
       <div
+        ref={arenaRef}
         className="mt-4 relative h-[320px] md:h-[380px] rounded-2xl border border-zinc-200 bg-gradient-to-b from-zinc-50 via-white to-zinc-100 overflow-hidden select-none touch-none"
         onPointerDown={(e) => onSwipeStart(e.clientX)}
         onPointerUp={(e) => onSwipeEnd(e.clientX)}

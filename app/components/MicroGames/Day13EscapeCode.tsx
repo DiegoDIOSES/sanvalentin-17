@@ -19,6 +19,7 @@ function clamp(n: number, a: number, b: number) {
 
 /* =========================
    SCRATCH CARD (CANVAS)
+   ✅ Fix: resetKey repaints cover on reset
 ========================= */
 function ScratchCard({
   width,
@@ -27,6 +28,7 @@ function ScratchCard({
   children,
   onRevealed,
   disabled,
+  resetKey,
 }: {
   width: number;
   height: number;
@@ -34,6 +36,7 @@ function ScratchCard({
   children: React.ReactNode;
   onRevealed: () => void;
   disabled?: boolean;
+  resetKey: number;
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const drawingRef = useRef(false);
@@ -46,8 +49,13 @@ function ScratchCard({
     const ctx = c.getContext("2d");
     if (!ctx) return;
 
-    // fill cover
+    // ✅ reset internal refs every time we repaint
+    drawingRef.current = false;
+    revealedRef.current = false;
+
+    // ✅ clear + repaint cover
     ctx.globalCompositeOperation = "source-over";
+    ctx.clearRect(0, 0, width, height);
     ctx.fillStyle = coverColor ?? "#111827";
     ctx.fillRect(0, 0, width, height);
 
@@ -62,8 +70,9 @@ function ScratchCard({
     }
     ctx.putImageData(img, 0, 0);
 
+    // erase mode
     ctx.globalCompositeOperation = "destination-out";
-  }, [width, height, coverColor]);
+  }, [width, height, coverColor, resetKey]);
 
   const eraseAt = (x: number, y: number) => {
     const c = canvasRef.current;
@@ -85,12 +94,14 @@ function ScratchCard({
     const img = ctx.getImageData(0, 0, width, height).data;
     let transparent = 0;
     const step = 16;
+
     for (let y = 0; y < height; y += step) {
       for (let x = 0; x < width; x += step) {
         const idx = (y * width + x) * 4 + 3;
         if (img[idx] < 16) transparent++;
       }
     }
+
     const total = Math.ceil(height / step) * Math.ceil(width / step);
     return transparent / total;
   };
@@ -101,9 +112,15 @@ function ScratchCard({
     if (ratio >= 0.48) {
       revealedRef.current = true;
       onRevealed();
+
+      // fully clear cover so number is visible
       const c = canvasRef.current;
       const ctx = c?.getContext("2d");
-      if (ctx) ctx.clearRect(0, 0, width, height);
+      if (ctx) {
+        ctx.globalCompositeOperation = "source-over";
+        ctx.clearRect(0, 0, width, height);
+        ctx.globalCompositeOperation = "destination-out";
+      }
     }
   };
 
@@ -130,7 +147,9 @@ function ScratchCard({
         ref={canvasRef}
         width={width}
         height={height}
-        className={`absolute inset-0 touch-none ${disabled ? "pointer-events-none" : "cursor-pointer"}`}
+        className={`absolute inset-0 touch-none ${
+          disabled ? "pointer-events-none" : "cursor-pointer"
+        }`}
         onPointerDown={(e) => {
           if (disabled) return;
           drawingRef.current = true;
@@ -160,7 +179,7 @@ function ScratchCard({
 }
 
 /* =========================
-   DAY 13 (6s TOTAL)
+   DAY 13
 ========================= */
 export default function Day13EscapeCode({ onWin }: { onWin: () => void }) {
   const [digits, setDigits] = useState<DigitState>({
@@ -171,6 +190,9 @@ export default function Day13EscapeCode({ onWin }: { onWin: () => void }) {
   });
 
   const [won, setWon] = useState(false);
+
+  // ✅ scratch reset counter
+  const [scratchReset, setScratchReset] = useState(0);
 
   // ⏱ timer control
   const [started, setStarted] = useState(false);
@@ -277,6 +299,9 @@ export default function Day13EscapeCode({ onWin }: { onWin: () => void }) {
     setStarted(false);
     setExpired(false);
     setMsLeft(TOTAL_MS);
+
+    // ✅ forces scratch repaint (fix)
+    setScratchReset((v) => v + 1);
   };
 
   const start = () => {
@@ -415,6 +440,7 @@ export default function Day13EscapeCode({ onWin }: { onWin: () => void }) {
               coverColor="#111827"
               disabled={lockedUI || !!digits.d1}
               onRevealed={() => setDigits((p) => ({ ...p, d1: "2" }))}
+              resetKey={scratchReset} // ✅ FIX
             >
               <div className="text-center">
                 <div className="text-xs text-zinc-600">Primer dígito</div>
@@ -440,7 +466,9 @@ export default function Day13EscapeCode({ onWin }: { onWin: () => void }) {
           </div>
 
           <div
-            className={`mt-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 ${lockedUI ? "opacity-70" : ""}`}
+            className={`mt-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 ${
+              lockedUI ? "opacity-70" : ""
+            }`}
           >
             <div className="text-sm font-semibold text-zinc-900">
               {math.a} − {math.b} = ?
@@ -482,7 +510,9 @@ export default function Day13EscapeCode({ onWin }: { onWin: () => void }) {
           </div>
 
           <div
-            className={`mt-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 ${lockedUI ? "opacity-70" : ""}`}
+            className={`mt-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 ${
+              lockedUI ? "opacity-70" : ""
+            }`}
           >
             <div className="flex items-center justify-between">
               <div className="text-sm font-semibold text-zinc-900">🔒</div>
@@ -541,7 +571,9 @@ export default function Day13EscapeCode({ onWin }: { onWin: () => void }) {
           </div>
 
           <div
-            className={`mt-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 ${lockedUI ? "opacity-70" : ""}`}
+            className={`mt-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 ${
+              lockedUI ? "opacity-70" : ""
+            }`}
           >
             <div className="flex items-center justify-between">
               <div className="text-sm font-semibold text-zinc-900">
