@@ -23,7 +23,7 @@ export default function Day14TrollQuest({ onWin }: { onWin: () => void }) {
   const [won, setWon] = useState(false);
 
   /* -------------------------
-     ACT 1 — Items (bag)
+     ACT 1 — Items (bag)  ✅ pointer-drag iPhone safe
   ------------------------- */
   const items = useMemo(
     () =>
@@ -66,7 +66,7 @@ export default function Day14TrollQuest({ onWin }: { onWin: () => void }) {
     const expected = pattern[nextIndex];
 
     if (id !== expected) {
-      setSeq([]); // reset suave
+      setSeq([]);
       return;
     }
 
@@ -76,7 +76,7 @@ export default function Day14TrollQuest({ onWin }: { onWin: () => void }) {
   };
 
   /* -------------------------
-     ACT 3 — Escape
+     ACT 3 — Escape (tu versión con colisión por pixeles)
   ------------------------- */
   const [lane, setLane] = useState<-1 | 1>(-1);
   const laneRef = useRef<-1 | 1>(-1);
@@ -87,40 +87,30 @@ export default function Day14TrollQuest({ onWin }: { onWin: () => void }) {
   const [rocks, setRocks] = useState<{ id: string; lane: -1 | 1; t: number }[]>(
     [],
   );
-
   const [escapeMs, setEscapeMs] = useState(5200);
   const escapeDone = escapeMs <= 0;
 
   const swipeStartX = useRef<number | null>(null);
 
-  // ✅ medimos alto real del “arena” para colisión por pixeles
   const arenaHRef = useRef<number>(320);
 
-  // ✅ loop del Acto 3 (con inicialización integrada)
   useEffect(() => {
     if (act !== 3) return;
 
     let alive = true;
     let initialized = false;
 
-    // ✅ MÁS ESPACIO ENTRE ROCAS
     const rockEvery = 1150;
-
-    // velocidad un pelín más suave para dar margen real
-    const speed = 1.25; // t per tick
+    const speed = 1.25;
     const tick = 40;
 
-    // dibujo: y = t * 3.1 px
     const pxPerT = 3.1;
 
-    // sizes (de tu UI actual)
-    const rockSize = 36; // h-9 w-9
-    const playerSize = 48; // h-12 w-12
+    const rockSize = 36;
+    const playerSize = 48;
 
-    // “jugador” está a bottom-[76px] o bottom-[86px] (depende del alto)
     const playerBottomOffset = () => (arenaHRef.current >= 360 ? 86 : 76);
 
-    // ✅ evita 2 rocas seguidas en el mismo carril
     let lastLane: -1 | 1 | null = null;
     const pickLane = (): -1 | 1 => {
       const l: -1 | 1 = Math.random() > 0.5 ? 1 : -1;
@@ -157,30 +147,22 @@ export default function Day14TrollQuest({ onWin }: { onWin: () => void }) {
       setRocks((prev) => {
         const next = prev
           .map((r) => ({ ...r, t: r.t + speed }))
-          .filter((r) => r.t < 130); // un poquito más de margen
+          .filter((r) => r.t < 130);
 
         const h = arenaHRef.current || 320;
 
-        // centro del jugador en px (Y)
-        const playerCenterY =
-          h - playerBottomOffset() - playerSize / 2;
-
+        const playerCenterY = h - playerBottomOffset() - playerSize / 2;
         const currentLane = laneRef.current;
 
-        // ✅ colisión REAL por pixeles (centros + tolerancia)
         const danger = next.find((r) => {
           if (r.lane !== currentLane) return false;
 
-          // En tu render: top:-18px y luego y = t*3.1
-          // Centro roca: (-18 + rockSize/2) + y = (-18 + 18) + y = y
           const rockCenterY = r.t * pxPerT;
-
           const dist = Math.abs(rockCenterY - playerCenterY);
 
-          // margen: si quieres más “perdón”, sube 10 -> 14
           const forgiving = 12;
-
           const hitDistance = (rockSize + playerSize) / 2 - forgiving;
+
           return dist < hitDistance;
         });
 
@@ -201,7 +183,7 @@ export default function Day14TrollQuest({ onWin }: { onWin: () => void }) {
   }, [act]);
 
   /* -------------------------
-     ACT TRANSITIONS (sin cascadas)
+     ACT TRANSITIONS
   ------------------------- */
   const finishedRef = useRef(false);
 
@@ -234,7 +216,6 @@ export default function Day14TrollQuest({ onWin }: { onWin: () => void }) {
     return () => window.clearTimeout(id);
   }, [act, escapeDone]);
 
-  // ✅ dispara onWin una sola vez
   const onWinRef = useRef(false);
   useEffect(() => {
     if (!won) return;
@@ -301,7 +282,7 @@ export default function Day14TrollQuest({ onWin }: { onWin: () => void }) {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
                 >
-                  <Act1DragBag
+                  <Act1DragBagIOS
                     items={items}
                     bag={bag}
                     setBag={setBag}
@@ -352,7 +333,6 @@ export default function Day14TrollQuest({ onWin }: { onWin: () => void }) {
                       swipeStartX.current = null;
                       if (Math.abs(dx) > 24) setLane(dx > 0 ? 1 : -1);
                     }}
-                    // ✅ actualiza alto real del área
                     onArenaHeight={(h) => (arenaHRef.current = h)}
                   />
                 </motion.div>
@@ -378,21 +358,36 @@ export default function Day14TrollQuest({ onWin }: { onWin: () => void }) {
 }
 
 /* =========================
-   ACT 1 — DRAG ITEMS TO BAG
+   ACT 1 — POINTER DRAG (iOS SAFE)
 ========================= */
 
-function Act1DragBag({
+type A1Item = { id: string; emoji: string; label: string };
+
+function Act1DragBagIOS({
   items,
   bag,
   setBag,
   done,
 }: {
-  items: { id: string; emoji: string; label: string }[];
+  items: A1Item[];
   bag: (string | null)[];
   setBag: React.Dispatch<React.SetStateAction<(string | null)[]>>;
   done: boolean;
 }) {
   const filled = bag.filter(Boolean).length;
+
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const bagRef = useRef<HTMLDivElement | null>(null);
+
+  const [dragging, setDragging] = useState<{
+    id: string;
+    x: number;
+    y: number;
+    dx: number;
+    dy: number;
+  } | null>(null);
+
+  const placed = useMemo(() => new Set(bag.filter(Boolean) as string[]), [bag]);
 
   const place = (itemId: string) => {
     setBag((prev) => {
@@ -413,16 +408,30 @@ function Act1DragBag({
     });
   };
 
+  const isInsideBag = (clientX: number, clientY: number) => {
+    const el = bagRef.current;
+    if (!el) return false;
+    const r = el.getBoundingClientRect();
+    return clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom;
+  };
+
   return (
     <div className="grid gap-3 md:grid-cols-2">
-      <div className="rounded-2xl border border-zinc-200 bg-white p-4">
+      {/* Items */}
+      <div
+        ref={containerRef}
+        className="rounded-2xl border border-zinc-200 bg-white p-4 select-none"
+        style={{
+          WebkitUserSelect: "none",
+          userSelect: "none",
+          WebkitTouchCallout: "none",
+        }}
+      >
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-sm font-semibold text-zinc-900">
-              Elige 3 cosas
-            </div>
+            <div className="text-sm font-semibold text-zinc-900">Elige 3 cosas</div>
             <div className="mt-1 text-xs text-zinc-600">
-              Arrastra a la mochila (o toca para añadir).
+              Mantén presionado y arrastra a la mochila (tap también funciona).
             </div>
           </div>
           <div className="text-xs px-3 py-1 rounded-full border bg-zinc-50 border-zinc-200 text-zinc-700">
@@ -431,35 +440,96 @@ function Act1DragBag({
         </div>
 
         <div className="mt-3 grid grid-cols-3 gap-2">
-          {items.map((it) => (
-            <button
-              key={it.id}
-              type="button"
-              draggable
-              onDragStart={(e) => e.dataTransfer.setData("text/plain", it.id)}
-              onClick={() => place(it.id)}
-              className="rounded-2xl border border-zinc-200 bg-white px-3 py-3 text-center shadow-soft active:scale-[0.99]"
-            >
-              <div className="text-2xl">{it.emoji}</div>
-              <div className="mt-1 text-[10px] text-zinc-600">{it.label}</div>
-            </button>
-          ))}
+          {items.map((it) => {
+            const disabled = placed.has(it.id) || done;
+            return (
+              <button
+                key={it.id}
+                type="button"
+                onClick={() => !disabled && place(it.id)}
+                onPointerDown={(e) => {
+                  if (disabled) return;
+
+                  // evita selección/zoom iOS
+                  e.preventDefault();
+
+                  const el = e.currentTarget as HTMLButtonElement;
+                  const r = el.getBoundingClientRect();
+
+                  setDragging({
+                    id: it.id,
+                    x: e.clientX,
+                    y: e.clientY,
+                    dx: e.clientX - (r.left + r.width / 2),
+                    dy: e.clientY - (r.top + r.height / 2),
+                  });
+
+                  el.setPointerCapture(e.pointerId);
+                }}
+                onPointerMove={(e) => {
+                  if (!dragging) return;
+                  if (dragging.id !== it.id) return;
+                  e.preventDefault();
+                  setDragging((p) => (p ? { ...p, x: e.clientX, y: e.clientY } : p));
+                }}
+                onPointerUp={(e) => {
+                  if (!dragging) return;
+                  if (dragging.id !== it.id) return;
+                  e.preventDefault();
+
+                  if (isInsideBag(e.clientX, e.clientY)) place(it.id);
+                  setDragging(null);
+                }}
+                onPointerCancel={() => setDragging(null)}
+                className={`relative rounded-2xl border border-zinc-200 bg-white px-3 py-3 text-center shadow-soft active:scale-[0.99] touch-none ${
+                  disabled ? "opacity-40" : ""
+                }`}
+                style={{
+                  WebkitUserSelect: "none",
+                  userSelect: "none",
+                  WebkitTouchCallout: "none",
+                }}
+              >
+                <div className="text-2xl">{it.emoji}</div>
+                <div className="mt-1 text-[10px] text-zinc-600">{it.label}</div>
+              </button>
+            );
+          })}
         </div>
+
+        {/* Ghost */}
+        <AnimatePresence>
+          {dragging && (
+            <motion.div
+              className="fixed z-[9999] pointer-events-none select-none"
+              style={{
+                left: dragging.x - dragging.dx,
+                top: dragging.y - dragging.dy,
+                transform: "translate(-50%, -50%)",
+              }}
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.96, opacity: 0 }}
+            >
+              <div className="rounded-2xl border border-zinc-200 bg-white shadow-soft px-4 py-3 grid place-items-center">
+                <div className="text-2xl">
+                  {items.find((x) => x.id === dragging.id)?.emoji ?? "✨"}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
+      {/* Bag */}
       <div
+        ref={bagRef}
         className="rounded-2xl border border-zinc-200 bg-white p-4"
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={(e) => {
-          e.preventDefault();
-          const id = e.dataTransfer.getData("text/plain");
-          if (id) place(id);
-        }}
       >
         <div className="flex items-center justify-between">
           <div>
             <div className="text-sm font-semibold text-zinc-900">Mochila</div>
-            <div className="mt-1 text-xs text-zinc-600">Llénala para seguir.</div>
+            <div className="mt-1 text-xs text-zinc-600">Suelta aquí para equipar.</div>
           </div>
           <div className="text-2xl">🎒</div>
         </div>
@@ -495,7 +565,8 @@ function Act1DragBag({
                 Perfecto. Ya estás listo.
               </div>
               <div className="mt-1 text-sm text-emerald-700">
-                A veces lo importante es <span className="font-semibold">estar preparado</span>.
+                A veces lo importante es{" "}
+                <span className="font-semibold">estar preparado</span>.
               </div>
             </motion.div>
           )}
@@ -546,7 +617,10 @@ function Act2Ritual({
 
       <div className="mt-3 flex items-center justify-between">
         <div className="text-xs text-zinc-700">
-          Progreso: <span className="font-semibold">{seq.length}/{pattern.length}</span>
+          Progreso:{" "}
+          <span className="font-semibold">
+            {seq.length}/{pattern.length}
+          </span>
         </div>
         <div className="text-xs px-3 py-1 rounded-full border bg-zinc-50 border-zinc-200 text-zinc-700">
           siguiente: <span className="font-semibold">{nextId ? "🧿" : "—"}</span>
@@ -652,7 +726,6 @@ function Act3Escape({
     };
 
     measure();
-
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);
   }, [onArenaHeight]);

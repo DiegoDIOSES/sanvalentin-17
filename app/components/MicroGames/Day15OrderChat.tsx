@@ -14,7 +14,7 @@ const CORRECT: Msg[] = [
 ];
 
 // ✅ Cambia esto:
-const PHONE_E164 = "51XXXXXXXXX"; // ejemplo: 51987654321 (sin +)
+const PHONE_E164 = "51937328128"; // ejemplo: 51987654321 (sin +)
 
 // ✅ Mensaje que quedará listo en el chat real
 const REAL_CHAT_MESSAGE =
