@@ -28,7 +28,7 @@ const SCOOPS: Piece[] = [
   { id: "s_choco", type: "scoop", label: "Chocolate", emoji: "🍫" },
   { id: "s_mint", type: "scoop", label: "Menta", emoji: "🌿" },
 
-  // extras para armar bonito
+  // extras
   { id: "s_vain", type: "scoop", label: "Vainilla", emoji: "🍦" },
   { id: "s_straw", type: "scoop", label: "Fresa", emoji: "🍓" },
   { id: "s_blue", type: "scoop", label: "Arándano", emoji: "🫐" },
@@ -63,10 +63,7 @@ export default function Day17BuildIceCream({ onWin }: { onWin: () => void }) {
     () => placed.some((p) => p.emoji === "🍫"),
     [placed],
   );
-  const hasMint = useMemo(
-    () => placed.some((p) => p.emoji === "🌿"),
-    [placed],
-  );
+  const hasMint = useMemo(() => placed.some((p) => p.emoji === "🌿"), [placed]);
 
   const MAX_STACK = 5;
   const canWin =
@@ -87,7 +84,7 @@ export default function Day17BuildIceCream({ onWin }: { onWin: () => void }) {
   const cupRef = useRef<HTMLDivElement | null>(null);
 
   /* =========================
-     DRAG (iOS safe): pointer
+     DRAG (iOS PRO / window listeners)
   ========================= */
   const [drag, setDrag] = useState<{
     id: string | null;
@@ -97,69 +94,123 @@ export default function Day17BuildIceCream({ onWin }: { onWin: () => void }) {
     y: number;
   }>({ id: null, emoji: "", active: false, x: 0, y: 0 });
 
-  const draggingPiece = useRef<Piece | null>(null);
+  const draggingPieceRef = useRef<Piece | null>(null);
+  const pointerIdRef = useRef<number | null>(null);
 
-  const beginDrag = (e: React.PointerEvent, piece: Piece) => {
+  // Guardamos posición real en ref (más confiable que state para el drop)
+  const posRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  const startDrag = (e: React.PointerEvent, piece: Piece) => {
     if (won) return;
 
-    // ya usado? (no permitir repetir la misma pieza del tray)
     const already = placed.some((p) => p.id === piece.id);
     if (already) return;
 
-    // max stack
     if (placed.length >= MAX_STACK) return;
 
+    // 🔥 clave para iOS: evitar selección / contexto
     e.preventDefault();
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
 
-    draggingPiece.current = piece;
-    setDrag({ id: piece.id, emoji: piece.emoji, active: true, x: e.clientX, y: e.clientY });
+    pointerIdRef.current = e.pointerId;
+    draggingPieceRef.current = piece;
+
+    posRef.current = { x: e.clientX, y: e.clientY };
+
+    setDrag({
+      id: piece.id,
+      emoji: piece.emoji,
+      active: true,
+      x: e.clientX,
+      y: e.clientY,
+    });
   };
 
-  const moveDrag = (e: React.PointerEvent) => {
-    if (!drag.active) return;
-    e.preventDefault();
-    setDrag((d) => ({ ...d, x: e.clientX, y: e.clientY }));
-  };
-
-  const endDrag = () => {
+  const finishDrag = () => {
     if (!drag.active) return;
 
-    const piece = draggingPiece.current;
-    draggingPiece.current = null;
+    const piece = draggingPieceRef.current;
+    draggingPieceRef.current = null;
+    pointerIdRef.current = null;
 
-    // drop?
     const cup = cupRef.current;
+    const { x, y } = posRef.current;
+
     const inCup = (() => {
       if (!cup) return false;
       const r = cup.getBoundingClientRect();
-      return drag.x >= r.left && drag.x <= r.right && drag.y >= r.top && drag.y <= r.bottom;
+      return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
     })();
 
     if (piece && inCup) {
       setPlaced((prev) => {
         if (prev.some((p) => p.id === piece.id)) return prev;
         if (prev.length >= MAX_STACK) return prev;
-        const nextIndex = prev.length; // 0..MAX_STACK-1
-        return [...prev, { id: piece.id, type: piece.type, emoji: piece.emoji, index: nextIndex }];
+        const nextIndex = prev.length;
+        return [
+          ...prev,
+          { id: piece.id, type: piece.type, emoji: piece.emoji, index: nextIndex },
+        ];
       });
     }
 
     setDrag({ id: null, emoji: "", active: false, x: 0, y: 0 });
   };
 
+  // ✅ listeners globales (soluciona el drag en iPhone)
+  useEffect(() => {
+    if (!drag.active) return;
+
+    const onMove = (ev: PointerEvent) => {
+      if (pointerIdRef.current == null) return;
+      if (ev.pointerId !== pointerIdRef.current) return;
+
+      // evitar scroll / rubber band
+      ev.preventDefault?.();
+
+      posRef.current = { x: ev.clientX, y: ev.clientY };
+      setDrag((d) => (d.active ? { ...d, x: ev.clientX, y: ev.clientY } : d));
+    };
+
+    const onUp = (ev: PointerEvent) => {
+      if (pointerIdRef.current == null) return;
+      if (ev.pointerId !== pointerIdRef.current) return;
+      ev.preventDefault?.();
+      finishDrag();
+    };
+
+    const onCancel = (ev: PointerEvent) => {
+      if (pointerIdRef.current == null) return;
+      if (ev.pointerId !== pointerIdRef.current) return;
+      ev.preventDefault?.();
+      finishDrag();
+    };
+
+    window.addEventListener("pointermove", onMove, { passive: false });
+    window.addEventListener("pointerup", onUp, { passive: false });
+    window.addEventListener("pointercancel", onCancel, { passive: false });
+
+    return () => {
+      window.removeEventListener("pointermove", onMove as any);
+      window.removeEventListener("pointerup", onUp as any);
+      window.removeEventListener("pointercancel", onCancel as any);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [drag.active]);
+
   const reset = () => {
     setPlaced([]);
     setWon(false);
     wonRef.current = false;
+
     setDrag({ id: null, emoji: "", active: false, x: 0, y: 0 });
-    draggingPiece.current = null;
+    draggingPieceRef.current = null;
+    pointerIdRef.current = null;
   };
 
   const status = useMemo(() => {
     if (won) return { tone: "ok", text: "Helado perfecto ✨" };
 
-    const missing = [];
+    const missing: string[] = [];
     if (!hasChocolate) missing.push("🍫");
     if (!hasMint) missing.push("🌿");
     if (scoopsCount < 3) missing.push("3 bolitas");
@@ -167,7 +218,9 @@ export default function Day17BuildIceCream({ onWin }: { onWin: () => void }) {
 
     return {
       tone: missing.length ? "wait" : "ok",
-      text: missing.length ? `Falta: ${missing.join(" · ")}` : "¡Casi! suéltalo en la copa",
+      text: missing.length
+        ? `Falta: ${missing.join(" · ")}`
+        : "¡Casi! suéltalo en la copa",
     };
   }, [won, hasChocolate, hasMint, scoopsCount, toppingsCount]);
 
@@ -177,7 +230,8 @@ export default function Day17BuildIceCream({ onWin }: { onWin: () => void }) {
         <div>
           <div className="text-sm font-semibold text-zinc-900">Heladito 🍫🌿</div>
           <div className="mt-1 text-sm text-zinc-700">
-            Arma tu helado. Para ganar debe tener <span className="font-semibold">Chocolate 🍫</span> y{" "}
+            Arma tu helado. Para ganar debe tener{" "}
+            <span className="font-semibold">Chocolate 🍫</span> y{" "}
             <span className="font-semibold">Menta 🌿</span>.
           </div>
         </div>
@@ -211,7 +265,7 @@ export default function Day17BuildIceCream({ onWin }: { onWin: () => void }) {
         <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
           <div className="text-sm font-semibold text-zinc-900">Elige y arrastra</div>
           <div className="mt-1 text-xs text-zinc-600">
-            Mantén presionado (sin copiar) y suelta dentro de la copa.
+            Mantén presionado y arrastra (iPhone safe).
           </div>
 
           <div className="mt-3 grid grid-cols-4 gap-2">
@@ -222,20 +276,18 @@ export default function Day17BuildIceCream({ onWin }: { onWin: () => void }) {
               return (
                 <div
                   key={p.id}
-                  role="button"
-                  tabIndex={0}
-                  className={`rounded-2xl border bg-white p-3 grid place-items-center select-none ${
+                  className={`rounded-2xl border bg-white p-3 grid place-items-center ${
                     disabled ? "opacity-40" : "active:scale-[0.99]"
                   }`}
+                  // ✅ iOS anti-copy + anti-select + anti-callout
                   style={{
                     WebkitUserSelect: "none",
                     userSelect: "none",
                     WebkitTouchCallout: "none",
+                    touchAction: "none",
                   }}
-                  onPointerDown={(e) => !disabled && beginDrag(e, p)}
-                  onPointerMove={moveDrag}
-                  onPointerUp={endDrag}
-                  onPointerCancel={endDrag}
+                  onContextMenu={(e) => e.preventDefault()}
+                  onPointerDown={(e) => !disabled && startDrag(e, p)}
                 >
                   <div className="text-2xl">{p.emoji}</div>
                   <div className="mt-1 text-[10px] text-zinc-600 text-center">
@@ -266,7 +318,9 @@ export default function Day17BuildIceCream({ onWin }: { onWin: () => void }) {
               WebkitUserSelect: "none",
               userSelect: "none",
               WebkitTouchCallout: "none",
+              touchAction: "none",
             }}
+            onContextMenu={(e) => e.preventDefault()}
           >
             {/* base copa */}
             <div className="absolute inset-x-0 bottom-6 grid place-items-center">
@@ -278,15 +332,12 @@ export default function Day17BuildIceCream({ onWin }: { onWin: () => void }) {
               </div>
             </div>
 
-            {/* stack positions */}
+            {/* stack */}
             <AnimatePresence>
               {placed.map((p) => {
-                // posiciones: apilar hacia arriba
-                const baseY = 250; // punto base aproximado sobre la copa
-                const gap = 44; // distancia entre piezas
+                const baseY = 250;
+                const gap = 44;
                 const y = baseY - p.index * gap;
-
-                // dispersión leve para que se vea natural
                 const wobble = (p.index % 2 === 0 ? -10 : 10) * 0.6;
 
                 return (
@@ -309,17 +360,15 @@ export default function Day17BuildIceCream({ onWin }: { onWin: () => void }) {
               })}
             </AnimatePresence>
 
-            {/* hint drop */}
             {!won && (
               <div className="absolute left-3 right-3 top-3 rounded-2xl border border-zinc-200 bg-white/85 backdrop-blur p-3 text-center">
                 <div className="text-[11px] text-zinc-600">
-                  Suelta aquí tus piezas. Obligatorio: <span className="font-semibold">🍫</span> y{" "}
+                  Suelta aquí. Obligatorio: <span className="font-semibold">🍫</span> y{" "}
                   <span className="font-semibold">🌿</span>
                 </div>
               </div>
             )}
 
-            {/* win message */}
             {won && (
               <motion.div
                 className="absolute left-3 right-3 bottom-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-center"
@@ -338,7 +387,7 @@ export default function Day17BuildIceCream({ onWin }: { onWin: () => void }) {
         </div>
       </div>
 
-      {/* Drag ghost (follows finger) */}
+      {/* Drag ghost */}
       <AnimatePresence>
         {drag.active && (
           <motion.div
@@ -349,7 +398,7 @@ export default function Day17BuildIceCream({ onWin }: { onWin: () => void }) {
               transform: "translate(-50%, -70%)",
               filter: "drop-shadow(0 12px 18px rgba(0,0,0,0.18))",
             }}
-            initial={{ scale: 0.9, opacity: 0.9 }}
+            initial={{ scale: 0.95, opacity: 0.9 }}
             animate={{ scale: 1.05, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
           >

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-//import confetti from "canvas-confetti";
+// import confetti from "canvas-confetti"; // ✅ NO (sin confetti)
 
 import type { DayItem } from "../data/days";
 import { playSound, stopSound } from "../lib/sound";
@@ -24,7 +24,6 @@ import Day05BuenosAires from "./DayScenes/Day05BuenosAires";
 import Day05LightCity from "./MicroGames/Day05LightCity";
 
 import Day06ImanolExperience from "./DayScenes/Day06ImanolExperience";
-// import Day06Constellation from "./MicroGames/Day06ConstellationCinematic";
 
 import Day07Flowers from "./DayScenes/Day07Flowers";
 import Day07GardenBloom from "./MicroGames/Day07GardenBloom";
@@ -57,7 +56,9 @@ import Day16Coquita from "./DayScenes/Day16Coquita";
 import Day16PourCoke from "./MicroGames/Day16PourCoke";
 
 import Day17ChocoMenta from "./DayScenes/Day17ChocoMenta";
-import Day17SwirlMix from "./MicroGames/Day17SwirlMix";
+import Day17BuildIceCream from "./MicroGames/Day17SwirlMix";
+
+import Day18MiniViaje from "./DayScenes/DayFinalMiniViaje";
 
 export default function DayModal({
   item,
@@ -69,26 +70,24 @@ export default function DayModal({
   muted: boolean;
 }) {
   const [wins, setWins] = useState(0);
-  const isFinal = item.day === 17;
+
+  // ✅ Ahora el final es el día 18 (Mini Viaje)
+  const isFinal = item.day === 18;
 
   useEffect(() => {
     playSound(item.sound, muted, 0.85);
     return () => stopSound();
   }, [item.sound, muted]);
 
-  // ✅ helper: confetti solo si quieres (y día 7 NO)
+  // ✅ helper: sin confetti (si lo quieres después, aquí lo repones)
   const celebrate = (_opts?: { particleCount?: number; spread?: number }) => {};
 
-  // ✅ onWin ahora NO hace lluvia en día 7
   const onWin = () => {
     setWins((w) => w + 1);
 
-    // ❌ Día 7 sin confetti (sin lluvia)
-    if (item.day !== 7) {
-      celebrate();
-    }
+    // ✅ NO confetti en ningún día (y en especial no en día 7)
+    if (item.day !== 7) celebrate();
 
-    // sonido OK para todos (si quieres también puedes excluir día 7)
     playSound("/sounds/unlock.mp3", muted, 0.8);
   };
 
@@ -97,7 +96,7 @@ export default function DayModal({
     if (item.microGame === "hold") return <HoldGame onWin={onWin} />;
     return <DragGame onWin={onWin} />;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [item.microGame, muted, item.day]);
+  }, [item.microGame]);
 
   return (
     <motion.div
@@ -130,7 +129,7 @@ export default function DayModal({
         exit={{ y: 20, scale: 0.995, opacity: 0 }}
         transition={{ type: "spring", stiffness: 260, damping: 26 }}
       >
-        {/* HEADER (sticky) */}
+        {/* HEADER */}
         <div
           className={`
             relative
@@ -261,7 +260,6 @@ export default function DayModal({
                 <p className="mt-1 text-xs text-zinc-600">
                   5 semillas, 5 gestos distintos. Haz florecer el jardín 🌸
                 </p>
-                {/* ✅ seguirá llamando onWin, pero ya NO habrá confetti por el check */}
                 <Day07GardenBloom onWin={onWin} muted={muted} />
               </div>
             </div>
@@ -371,10 +369,14 @@ export default function DayModal({
               <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
                 <div className="text-sm font-semibold">Mini juego</div>
                 <p className="mt-1 text-xs text-zinc-600">
-                  Mezcla el swirl hasta que “se sienta” correcto 🍦
+                  Arma tu heladito: obligatorio 🍫 + 🌿
                 </p>
-                <Day17SwirlMix onWin={onWin} />
+                <Day17BuildIceCream onWin={onWin} />
               </div>
+            </div>
+          ) : item.day === 18 ? (
+            <div className="space-y-4">
+              <Day18MiniViaje />
             </div>
           ) : !isFinal ? (
             <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
@@ -385,33 +387,12 @@ export default function DayModal({
               {Game}
             </div>
           ) : (
+            // ✅ fallback por si algún día final no tiene vista, pero ahora el final es el 18
             <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-5">
-              <div className="text-sm font-semibold">El sobre final 💌</div>
+              <div className="text-sm font-semibold">El final 💌</div>
               <p className="mt-2 text-sm text-zinc-700 leading-relaxed">
-                “Esto es solo una de las cosas que te gustan.
-                <br />
-                Pero compartirlas contigo… empieza a gustarme más.”
+                “La espera valdrá la pena…”
               </p>
-
-              <div className="mt-4 flex flex-col sm:flex-row gap-2">
-                <button
-                  onClick={() => {
-                    // ✅ aquí sí confetti
-                    celebrate({ particleCount: 120, spread: 80 });
-                    playSound("/sounds/secret.mp3", muted, 0.8);
-                  }}
-                  className="rounded-2xl bg-zinc-900 text-white px-4 py-3 text-sm font-semibold"
-                >
-                  Sí, conversemos ✨
-                </button>
-
-                <button
-                  onClick={() => playSound("/sounds/pop.mp3", muted, 0.7)}
-                  className="rounded-2xl bg-white border border-zinc-200 px-4 py-3 text-sm font-semibold"
-                >
-                  Dame una pista 😄
-                </button>
-              </div>
             </div>
           )}
         </div>

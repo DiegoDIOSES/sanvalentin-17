@@ -17,13 +17,13 @@ export interface DayItem {
 
 /**
  * Total de días del reto
- * (San Valentín – cuenta regresiva)
+ * (Cuenta regresiva)
  */
-export const TOTAL_DAYS = 17;
+export const TOTAL_DAYS = 18;
 
 /**
  * Contenido principal:
- * 17 días, 17 cosas que te gustan
+ * 18 días, mini viaje final incluido
  */
 export const DAYS: DayItem[] = [
   {
@@ -92,7 +92,7 @@ export const DAYS: DayItem[] = [
     description: "Un jardín que florece con 5 acciones distintas.",
     emoji: "🌸",
     accentGradient: "from-pink-50 via-rose-50 to-amber-50",
-    sound: "/sounds/wind.mp3", // opcional (este día tiene viento)
+    sound: "/sounds/wind.mp3",
     microGame: "tap", // override en DayModal
   },
   {
@@ -182,9 +182,19 @@ export const DAYS: DayItem[] = [
   {
     day: 17,
     title: "Chocolate • Menta",
-    description: "Mezcla el swirl perfecto… dos sabores raros que funcionan.",
-    emoji: "🍦",
+    description: "Arma tu heladito: obligatorio 🍫 + 🌿",
+    emoji: "🍨",
     accentGradient: "from-emerald-100 via-amber-50 to-white",
+    microGame: "custom",
+    sound: "/sounds/pop.mp3",
+  },
+  {
+    day: 18,
+    title: "Nuestro mini viaje",
+    description:
+      "Guarda los recuerdos (Día 1–17). Cuando completes… la espera valdrá la pena 💌",
+    emoji: "🧳",
+    accentGradient: "from-rose-100 via-amber-50 to-emerald-50",
     microGame: "custom",
     sound: "/sounds/pop.mp3",
   },
