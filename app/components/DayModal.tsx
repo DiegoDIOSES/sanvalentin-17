@@ -369,7 +369,7 @@ export default function DayModal({
               <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
                 <div className="text-sm font-semibold">Mini juego</div>
                 <p className="mt-1 text-xs text-zinc-600">
-                  Arma tu heladito: obligatorio 🍫 + 🌿
+                  Arma tu heladito
                 </p>
                 <Day17BuildIceCream onWin={onWin} />
               </div>

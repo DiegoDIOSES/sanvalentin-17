@@ -156,7 +156,7 @@ export const DAYS: DayItem[] = [
     title: "Troll",
     description:
       "Niebla… y algo enorme escondido. Encuéntralo sin asustarte 😅",
-    emoji: "🌫️",
+    emoji: "🧌",
     accentGradient: "from-zinc-200 via-zinc-50 to-white",
     microGame: "custom",
     sound: "/sounds/pop.mp3",
@@ -182,7 +182,7 @@ export const DAYS: DayItem[] = [
   {
     day: 17,
     title: "Chocolate • Menta",
-    description: "Arma tu heladito: obligatorio 🍫 + 🌿",
+    description: "Arma tu heladito",
     emoji: "🍨",
     accentGradient: "from-emerald-100 via-amber-50 to-white",
     microGame: "custom",
@@ -192,7 +192,7 @@ export const DAYS: DayItem[] = [
     day: 18,
     title: "Nuestro mini viaje",
     description:
-      "Guarda los recuerdos (Día 1–17). Cuando completes… la espera valdrá la pena 💌",
+      "Guarda los recuerdos. Cuando completes… la espera valdrá la pena 💌",
     emoji: "🧳",
     accentGradient: "from-rose-100 via-amber-50 to-emerald-50",
     microGame: "custom",

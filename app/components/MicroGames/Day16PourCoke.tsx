@@ -300,7 +300,7 @@ export default function Day16PourCoke({ onWin }: { onWin: () => void }) {
                   <div className="mt-2 text-[11px] text-zinc-600">
                     {stage < 3
                       ? "Primero destapa y sirve perfecto."
-                      : "Arrastra el limón al vaso (sin mantener para copiar)."}
+                      : "Aprieta el limón para ponerlo en el vaso."}
                   </div>
 
                   <div className="mt-3 flex justify-center">

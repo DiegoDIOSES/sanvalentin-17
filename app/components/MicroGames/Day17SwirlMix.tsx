@@ -265,7 +265,7 @@ export default function Day17BuildIceCream({ onWin }: { onWin: () => void }) {
         <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
           <div className="text-sm font-semibold text-zinc-900">Elige y arrastra</div>
           <div className="mt-1 text-xs text-zinc-600">
-            Mantén presionado y arrastra (iPhone safe).
+            Mantén presionado y arrastra.
           </div>
 
           <div className="mt-3 grid grid-cols-4 gap-2">
