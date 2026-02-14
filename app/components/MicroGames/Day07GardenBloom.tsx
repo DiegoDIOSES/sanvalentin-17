@@ -710,7 +710,6 @@ function SeedTilt({ onDone }: { onDone: () => void }) {
     async function init() {
       try {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
         if (
           typeof DeviceOrientationEvent !== "undefined" &&
           typeof (DeviceOrientationEvent as any).requestPermission ===
