@@ -4,22 +4,25 @@ import { TOTAL_DAYS } from "../data/days";
 const MS_DAY = 24 * 60 * 60 * 1000;
 
 export function getUnlockedDayCount(now = new Date()) {
-  // Objetivo: 14 de febrero (si ya pasó, usa el siguiente año)
   const year = now.getFullYear();
-  const target = new Date(year, 1, 14, 0, 0, 0, 0); // Feb = 1
+  const thisYearTarget = new Date(year, 1, 14, 0, 0, 0, 0); // Feb = 1
+  const thisYearStart = new Date(thisYearTarget.getTime() - TOTAL_DAYS * MS_DAY);
+  thisYearStart.setHours(0, 0, 0, 0);
 
-  if (now.getTime() > target.getTime() + 6 * 60 * 60 * 1000) {
-    target.setFullYear(year + 1);
+  // Si ya está en la fecha final o pasada, todo debe estar desbloqueado permanentemente
+  if (now.getTime() > thisYearTarget.getTime()) {
+    return { 
+      unlocked: TOTAL_DAYS, 
+      start: thisYearStart, 
+      target: thisYearTarget 
+    };
   }
 
-  // inicio = target - TOTAL_DAYS días
-  const start = new Date(target.getTime() - TOTAL_DAYS * MS_DAY);
-  start.setHours(0, 0, 0, 0);
-
-  const elapsed = Math.floor((now.getTime() - start.getTime()) / MS_DAY);
+  // Si aún no alcanzamos el target de este año, calcula progresivamente
+  const elapsed = Math.floor((now.getTime() - thisYearStart.getTime()) / MS_DAY);
   const unlocked = Math.max(0, Math.min(TOTAL_DAYS, elapsed + 1));
 
-  return { unlocked, start, target };
+  return { unlocked, start: thisYearStart, target: thisYearTarget };
 }
 
 export function getCountdownToNextMidnight(now = new Date()) {
