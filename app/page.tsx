@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { DAYS, TOTAL_DAYS } from "./data/days";
@@ -13,6 +14,7 @@ import SoundToggle from "./components/SoundToggle";
 import HeartsBackground from "./components/HeartsBackground";
 
 export default function Page() {
+  const router = useRouter();
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [muted, setMuted] = useState(false);
 
@@ -84,6 +86,16 @@ export default function Page() {
               />
             );
           })}
+        </div>
+
+        <div className="mt-10 flex justify-center">
+          <button
+            type="button"
+            onClick={() => router.push("/abreme")}
+            className="rounded-full bg-pink-500 px-6 py-3 text-sm font-semibold text-white shadow-soft hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-pink-400"
+          >
+            Ábreme
+          </button>
         </div>
       </main>
 
