@@ -7,35 +7,53 @@ import HeartsBackground from "../components/HeartsBackground";
 
 const BOOK_PAGES = [
   {
-    title: "Página 1",
+    title: "Esencia",
     image: "/images/paula1.jpeg",
     lines: [
-      "Gracias por ser esa persona que escucha sin juzgar.",
-      "Cuando el día pesa, tu abrazo y tu pausa lo hacen más llevadero.",
-    ],
+  "Feliz Día de la Mujer a la mujer cuya esencia ilumina los espacios sin siquiera proponérselo.",
+  "Hay personas que destacan por lo que hacen, pero tú destacas por lo que eres: por tu sensibilidad, por tu manera de escuchar, por la calma que transmites incluso en medio del ruido del mundo.",
+  "Tu presencia tiene algo especial, algo que no se explica fácilmente pero que se siente. Y quienes tienen la fortuna de conocerte saben que no es casualidad encontrarse con una persona así.",
+  "Hoy se celebra a muchas mujeres, pero hoy también celebro tu forma única de ser, esa esencia que hace que el mundo sea un lugar un poco más bonito."
+]
   },
   {
-    title: "Página 2",
+    title: "Fuerza interior",
     image: "/images/paula2.jpeg",
     lines: [
-      "Tu valentía no siempre se ve. A veces es simplemente quedarte.",
-      "Los pequeños gestos que ofreces son semillas que florecen en otros.",
-    ],
+  "Ser mujer también es tener una fortaleza silenciosa que muchas veces pasa desapercibida.",
+  "Es seguir adelante incluso cuando los días pesan, es cuidar, sostener, comprender y dar más de lo que muchas veces se recibe.",
+  "Pero en medio de todo eso también está tu valentía: la valentía de ser auténtica, de mantener tu forma de ver el mundo y de no perder nunca esa sensibilidad que te hace especial.",
+  "Tu fuerza no siempre se mide en grandes gestos; muchas veces vive en los pequeños momentos, en tu forma de persistir, de levantarte y de seguir siendo tú."
+]
   },
   {
-    title: "Página 3",
+    title: "Tu luz",
     image: "/images/paula3.jpeg",
     lines: [
-      "Eres luz aun en los días nublados, y eso no pasa desapercibido.",
-      "Gracias por regalar tu tiempo, tu risa y tus abrazos sinceros.",
-    ],
+  "Hay personas que llevan una luz dentro, una luz que no depende de los días buenos ni de las circunstancias.",
+  "La tuya nace de tu forma de sentir, de la manera en que miras a los demás y del cariño con el que tratas incluso las cosas más simples.",
+  "Esa luz es la que hace que tu presencia sea tan especial, la que convierte momentos comunes en recuerdos valiosos.",
+  "Y quizá no siempre seas consciente de ello, pero hay muchas personas que encuentran calma, alegría y esperanza simplemente al tenerte cerca."
+]
   },
   {
-    title: "Página 4",
+    title: "Salida del Cielo",
     image: "/images/paula4.jpeg",
     lines: [
-      "Que este libro te recuerde lo necesaria que eres en muchas vidas.",
-      "Te abrazo en palabras, y te agradezco por cada latido compartido.",
+      "Creo encarecidamente que esa persona salió del mismo cielo,",
+      "porque no puedo creer que su corazón",
+      "tenga tanta bondad y a la vez tanta dulzura.",
+      "",
+      "A veces la miro y pienso",
+      "que el mundo fue generoso",
+      "el día que la puso en mi camino,",
+      "como si hubiera querido compensar",
+      "todo lo que antes no salió bien.",
+      "",
+      "No sé cómo alguien puede ser así,",
+      "tan completa, tan real,",
+      "tan difícil de merecer",
+      "y tan fácil de amar.",
     ],
   },
 ];
@@ -88,13 +106,14 @@ export default function AbremePage() {
             </span>
 
             <h1 className="mt-6 text-4xl font-semibold leading-tight tracking-tight text-zinc-900 sm:text-5xl lg:text-6xl">
-              Una galería hecha para abrazarte con recuerdos y palabras bonitas
+              Un espacio para celebrar la esencia de una mujer extraordinaria
             </h1>
 
             <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-zinc-600 sm:text-base sm:leading-8">
-              Aquí encontrarás imágenes, mensajes y pequeños fragmentos de cariño
-              pensados para hacerte sonreír. Todo está hecho con calma, ternura y
-              un poquito de magia.
+              Hoy no es solo una fecha más.
+Es un momento para recordar la fuerza, la sensibilidad y la belleza que vive en las mujeres que hacen del mundo un lugar mejor.
+
+Este pequeño espacio fue creado para celebrar tu esencia, tu forma de ser y todo lo que aportas simplemente siendo tú.
             </p>
 
             <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
@@ -233,26 +252,27 @@ export default function AbremePage() {
                               Mensaje especial
                             </span>
 
-                            <h3 className="mt-4 text-xl font-semibold tracking-tight text-zinc-900 sm:text-2xl">
-                              Palabras para ti
+                            <h3
+                            className={`mt-4 text-xl sm:text-2xl tracking-tight ${
+                                page.title === "Salida del Cielo"
+                                ? "font-serif text-rose-600"
+                                : "font-semibold text-zinc-900"
+                            }`}
+                            >
+                            {page.title}
                             </h3>
 
                             <div className="mt-5 space-y-4 sm:space-y-5">
-                              {page.lines.map((line) => (
+                              {page.lines.map((line, index) => (
                                 <p
-                                  key={line}
-                                  className="text-sm leading-7 text-zinc-700 sm:text-[15px] sm:leading-8"
+                                    key={index}
+                                    className={`text-sm leading-relaxed text-zinc-700 ${
+                                    line === "" ? "h-3" : ""
+                                    }`}
                                 >
-                                  {line}
+                                    {line}
                                 </p>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="mt-8 border-t border-pink-100/80 pt-5">
-                            <div className="flex items-center gap-3 text-xs font-semibold tracking-wide text-zinc-500">
-                              <span className="inline-flex h-2.5 w-2.5 rounded-full bg-pink-300" />
-                              <span>Cada palabra es un latido compartido</span>
+                                ))}
                             </div>
                           </div>
                         </div>
