@@ -3,40 +3,39 @@
 import Link from "next/link";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-
 import HeartsBackground from "../components/HeartsBackground";
 
 const BOOK_PAGES = [
   {
     title: "Página 1",
-    image: "/images/tini.jpg",
+    image: "/images/paula1.jpeg",
     lines: [
-      "Cada página de este libro está tejida con gratitud.",
-      "Tu sonrisa es una luz que transforma lo cotidiano.",
+      "Gracias por ser esa persona que escucha sin juzgar.",
+      "Cuando el día pesa, tu abrazo y tu pausa lo hacen más llevadero.",
     ],
   },
   {
     title: "Página 2",
-    image: "/images/jirafa-removebg-preview.png",
+    image: "/images/paula2.jpeg",
     lines: [
-      "Tu coraje escribe historias que el mundo necesita leer.",
-      "Gracias por ser esa calma que acoge y el fuego que impulsa.",
+      "Tu valentía no siempre se ve. A veces es simplemente quedarte.",
+      "Los pequeños gestos que ofreces son semillas que florecen en otros.",
     ],
   },
   {
     title: "Página 3",
-    image: "/images/hoja.png",
+    image: "/images/paula3.jpeg",
     lines: [
-      "En cada gesto hay un poema que hace vibrar a quien lo recibe.",
-      "Que estas palabras te abracen con la suavidad que mereces.",
+      "Eres luz aun en los días nublados, y eso no pasa desapercibido.",
+      "Gracias por regalar tu tiempo, tu risa y tus abrazos sinceros.",
     ],
   },
   {
     title: "Página 4",
-    image: "/images/troll.jpg",
+    image: "/images/paula4.jpeg",
     lines: [
-      "Eres arte, presencia y música. Gracias por compartir tu pulso.",
-      "Flores, viento y luz: hoy la celebración es tuya.",
+      "Que este libro te recuerde lo necesaria que eres en muchas vidas.",
+      "Te abrazo en palabras, y te agradezco por cada latido compartido.",
     ],
   },
 ];
@@ -44,10 +43,10 @@ const BOOK_PAGES = [
 function Sparkle({ style }: { style?: React.CSSProperties }) {
   return (
     <span
-      className="absolute text-pink-200 opacity-80"
+      className="pointer-events-none absolute text-pink-200/80 drop-shadow-sm"
       style={style}
     >
-      ✨
+      ✦
     </span>
   );
 }
@@ -57,197 +56,214 @@ export default function AbremePage() {
   const [currentSpread, setCurrentSpread] = useState(0);
 
   const totalSpreads = BOOK_PAGES.length;
-  const getCurrentPage = () => BOOK_PAGES[currentSpread];
+  const page = BOOK_PAGES[currentSpread];
+
+  const handleClose = () => {
+    setOpen(false);
+    setCurrentSpread(0);
+  };
+
+  const handlePrev = () => {
+    setCurrentSpread((prev) => Math.max(prev - 1, 0));
+  };
+
+  const handleNext = () => {
+    setCurrentSpread((prev) => Math.min(prev + 1, totalSpreads - 1));
+  };
 
   return (
-    <div className="min-h-screen bg-blobs relative overflow-hidden">
+    <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(255,228,236,0.9),_rgba(255,255,255,0.75)_28%,_rgba(253,244,255,0.68)_55%,_rgba(248,250,252,0.92)_100%)]">
       <HeartsBackground />
 
-      <main className="mx-auto max-w-5xl px-4 pb-20 pt-20">
-        <section className="relative text-center">
-          <motion.h1
-            initial={{ opacity: 0, y: 16 }}
+      <main className="relative z-10 mx-auto flex min-h-screen w-full max-w-6xl items-center px-4 py-14 sm:px-6 lg:px-8">
+        <section className="relative w-full">
+          <motion.div
+            initial={{ opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-4xl md:text-6xl font-semibold tracking-tight text-zinc-900"
+            transition={{ duration: 0.65 }}
+            className="mx-auto max-w-3xl text-center"
           >
-            Una galería para celebrar tu esencia
-          </motion.h1>
+            <span className="inline-flex items-center rounded-full border border-pink-200/70 bg-white/70 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-pink-500 shadow-[0_10px_40px_rgba(244,114,182,0.08)] backdrop-blur">
+              Para alguien especial
+            </span>
 
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="mx-auto mt-6 max-w-2xl text-base md:text-lg text-zinc-700"
-          >
-            Aquí verás palabras que te abrazan, imágenes que susurran calma y un
-            pequeño regalo escondido. Gracias por cada latido que compartes.
-          </motion.p>
+            <h1 className="mt-6 text-4xl font-semibold leading-tight tracking-tight text-zinc-900 sm:text-5xl lg:text-6xl">
+              Una galería hecha para abrazarte con recuerdos y palabras bonitas
+            </h1>
 
-          <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-            <button
-              type="button"
-              onClick={() => {
-                setCurrentSpread(0);
-                setOpen(true);
-              }}
-              className="inline-flex items-center justify-center rounded-full bg-pink-500 px-8 py-3 text-sm font-semibold text-white shadow-soft hover:bg-pink-600 focus:outline-none focus:ring-2 focus:ring-pink-400"
-            >
-              Descubre tu sorpresa
-            </button>
+            <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-zinc-600 sm:text-base sm:leading-8">
+              Aquí encontrarás imágenes, mensajes y pequeños fragmentos de cariño
+              pensados para hacerte sonreír. Todo está hecho con calma, ternura y
+              un poquito de magia.
+            </p>
 
-            <Link
-              href="/"
-              className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white/70 px-8 py-3 text-sm font-semibold text-zinc-900 shadow-soft backdrop-blur hover:bg-white"
-            >
-              Volver al inicio
-            </Link>
-          </div>
+            <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setCurrentSpread(0);
+                  setOpen(true);
+                }}
+                className="inline-flex h-12 items-center justify-center rounded-full bg-gradient-to-r from-pink-500 to-fuchsia-500 px-7 text-sm font-semibold text-white shadow-[0_18px_40px_rgba(236,72,153,0.28)] transition hover:scale-[1.01] hover:shadow-[0_22px_50px_rgba(236,72,153,0.32)] focus:outline-none focus:ring-2 focus:ring-pink-300"
+              >
+                Descubrir sorpresa
+              </button>
 
-          <div className="pointer-events-none">
-            <Sparkle style={{ top: 64, left: "12%", fontSize: 24 }} />
-            <Sparkle style={{ top: 68, right: "18%", fontSize: 18 }} />
-            <Sparkle style={{ bottom: 52, left: "15%", fontSize: 22 }} />
-            <Sparkle style={{ bottom: 44, right: "20%", fontSize: 20 }} />
+              <Link
+                href="/"
+                className="inline-flex h-12 items-center justify-center rounded-full border border-white/70 bg-white/75 px-7 text-sm font-semibold text-zinc-800 shadow-[0_10px_30px_rgba(15,23,42,0.06)] backdrop-blur transition hover:bg-white"
+              >
+                Volver al inicio
+              </Link>
+            </div>
+          </motion.div>
+
+          <div className="pointer-events-none absolute inset-0 hidden sm:block">
+            <Sparkle style={{ top: "8%", left: "10%", fontSize: 22 }} />
+            <Sparkle style={{ top: "16%", right: "13%", fontSize: 18 }} />
+            <Sparkle style={{ bottom: "16%", left: "14%", fontSize: 20 }} />
+            <Sparkle style={{ bottom: "10%", right: "16%", fontSize: 24 }} />
           </div>
         </section>
-
       </main>
 
       <AnimatePresence>
-        {open ? (
+        {open && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-8"
-            onClick={() => {
-              setOpen(false);
-              setCurrentSpread(0);
-            }}
+            className="fixed inset-0 z-50 bg-black/55 px-3 py-3 backdrop-blur-[2px] sm:px-5 sm:py-5"
+            onClick={handleClose}
           >
-            <motion.div
-              initial={{ scale: 0.96, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.96, opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="relative w-full max-w-6xl h-[82vh] max-h-[90vh] overflow-hidden rounded-3xl border border-white/20 bg-white/90 shadow-2xl backdrop-blur"
-              onClick={(event) => event.stopPropagation()}
-            >
-              <div className="mt-10 flex h-full flex-col items-center gap-6 px-6 pb-8">
-                <div className="flex w-full items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      disabled={currentSpread === 0}
-                      onClick={() => setCurrentSpread((s) => Math.max(s - 1, 0))}
-                      className="inline-flex items-center gap-2 rounded-full bg-zinc-100 px-4 py-2 text-sm font-semibold text-zinc-800 shadow-sm hover:bg-zinc-200 disabled:opacity-40 disabled:hover:bg-zinc-100"
-                    >
-                      ← Anterior
-                    </button>
+            <div className="flex h-full items-center justify-center">
+              <motion.div
+                initial={{ scale: 0.97, opacity: 0, y: 16 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.97, opacity: 0, y: 16 }}
+                transition={{ duration: 0.25 }}
+                onClick={(e) => e.stopPropagation()}
+                className="relative flex h-full max-h-[96vh] w-full max-w-6xl flex-col overflow-hidden rounded-[28px] border border-white/40 bg-[linear-gradient(135deg,rgba(255,255,255,0.88),rgba(255,247,251,0.82),rgba(255,255,255,0.76))] shadow-[0_30px_100px_rgba(0,0,0,0.28)] backdrop-blur-xl"
+              >
+                <div className="border-b border-white/50 bg-white/45 px-3 py-3 sm:px-5 sm:py-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        disabled={currentSpread === 0}
+                        onClick={handlePrev}
+                        className="inline-flex h-10 items-center justify-center rounded-full border border-white/70 bg-white/80 px-4 text-sm font-medium text-zinc-700 shadow-sm transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        ← <span className="ml-1 hidden sm:inline">Anterior</span>
+                      </button>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setOpen(false);
-                        setCurrentSpread(0);
-                      }}
-                      className="inline-flex items-center gap-2 rounded-full bg-zinc-100 px-4 py-2 text-sm font-semibold text-zinc-800 shadow-sm hover:bg-zinc-200"
-                    >
-                      ✨ Cerrar
-                    </button>
+                      <button
+                        type="button"
+                        onClick={handleClose}
+                        className="inline-flex h-10 items-center justify-center rounded-full border border-white/70 bg-white/80 px-4 text-sm font-semibold text-zinc-800 shadow-sm transition hover:bg-white"
+                      >
+                        Cerrar
+                      </button>
+                    </div>
+
+                    <div className="order-first flex justify-center sm:order-none">
+                      <div className="inline-flex items-center gap-2 rounded-full border border-pink-100 bg-white/80 px-4 py-2 text-xs font-semibold text-zinc-700 shadow-sm">
+                        <span className="h-2.5 w-2.5 rounded-full bg-pink-400" />
+                        <span>
+                          {currentSpread + 1}/{totalSpreads}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        disabled={currentSpread === totalSpreads - 1}
+                        onClick={handleNext}
+                        className="inline-flex h-10 items-center justify-center rounded-full border border-white/70 bg-white/80 px-4 text-sm font-medium text-zinc-700 shadow-sm transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        <span className="hidden sm:inline">Siguiente</span> <span className="sm:ml-1">→</span>
+                      </button>
+                    </div>
                   </div>
-
-                  <div className="flex items-center gap-2 rounded-full bg-white/60 px-4 py-2 text-xs font-semibold text-zinc-700 shadow-sm backdrop-blur">
-                    <span>Libro</span>
-                    <span className="h-2 w-2 rounded-full bg-pink-400" />
-                    <span>
-                      {currentSpread + 1}/{totalSpreads}
-                    </span>
-                  </div>
-
-                  <button
-                    type="button"
-                    disabled={currentSpread === totalSpreads - 1}
-                    onClick={() => setCurrentSpread((s) => Math.min(s + 1, totalSpreads - 1))}
-                    className="inline-flex items-center gap-2 rounded-full bg-zinc-100 px-4 py-2 text-sm font-semibold text-zinc-800 shadow-sm hover:bg-zinc-200 disabled:opacity-40 disabled:hover:bg-zinc-100"
-                  >
-                    Siguiente →
-                  </button>
                 </div>
 
-                <div className="relative flex h-full w-full gap-6 overflow-hidden" style={{ perspective: 1100 }}>
-                  <div className="absolute left-1/2 top-0 h-full w-3 -translate-x-1/2 rounded-full bg-gradient-to-b from-pink-300/90 via-transparent to-pink-300/20" />
+                <div className="relative flex-1 overflow-y-auto px-3 py-3 sm:px-5 sm:py-5 lg:px-6 lg:py-6">
+                  <div className="pointer-events-none absolute bottom-0 left-1/2 top-0 hidden w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-pink-200/70 to-transparent md:block" />
+                  <div className="pointer-events-none absolute bottom-10 left-1/2 top-10 hidden w-3 -translate-x-1/2 rounded-full bg-gradient-to-b from-pink-300/70 via-pink-100/40 to-pink-300/20 blur-[1px] md:block" />
 
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={currentSpread}
-                      initial={{ opacity: 0, rotateY: -35, x: 60 }}
-                      animate={{ opacity: 1, rotateY: 0, x: 0 }}
-                      exit={{ opacity: 0, rotateY: 35, x: -60 }}
-                      transition={{ duration: 0.45 }}
+                      initial={{ opacity: 0, rotateY: -10, y: 18 }}
+                      animate={{ opacity: 1, rotateY: 0, y: 0 }}
+                      exit={{ opacity: 0, rotateY: 10, y: -10 }}
+                      transition={{ duration: 0.35 }}
+                      className="grid min-h-full grid-cols-1 gap-4 md:grid-cols-2 md:gap-5"
                       style={{ transformStyle: "preserve-3d" }}
-                      className="relative grid w-full h-full grid-cols-1 gap-6 md:grid-cols-2"
                     >
-                      {(() => {
-                        const page = getCurrentPage();
-                        return (
-                          <>
-                            <div className="relative overflow-hidden rounded-3xl border border-white/30 bg-white/60 shadow-inner">
-                              <div className="absolute inset-0 bg-gradient-to-br from-pink-100 via-transparent to-violet-50 opacity-80" />
-                              <div className="relative h-80 w-full md:h-[28rem]">
-                                {page.image ? (
-                                  <img
-                                    src={page.image}
-                                    alt={page.title}
-                                    className="h-full w-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="h-full w-full bg-zinc-100" />
-                                )}
-                                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/40 to-transparent px-5 py-4">
-                                  <p className="text-sm font-semibold text-white">
-                                    {page.title}
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="absolute -right-3 top-8 h-40 w-6 rounded-tr-2xl rounded-br-2xl bg-white/30 shadow-inner" />
+                      <article className="group relative overflow-hidden rounded-[26px] border border-white/50 bg-white/70 shadow-[0_16px_50px_rgba(244,114,182,0.08)] backdrop-blur">
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(244,114,182,0.14),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(216,180,254,0.16),transparent_28%)]" />
+
+                        <div className="relative p-3 sm:p-4">
+                          <div className="relative overflow-hidden rounded-[22px] bg-zinc-100 shadow-inner">
+                            <div className="aspect-[4/5] w-full sm:aspect-[5/6] md:aspect-[4/5]">
+                              <img
+                                src={page.image}
+                                alt={page.title}
+                                className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"
+                              />
                             </div>
 
-                            <div className="relative overflow-hidden rounded-3xl border border-white/30 bg-white/70 shadow-inner">
-                              <div className="absolute inset-0 bg-gradient-to-br from-white/80 via-transparent to-pink-50 opacity-80" />
-                              <div className="p-6">
-                                <h3 className="text-lg font-semibold text-zinc-900">
-                                  Mensajes especiales
-                                </h3>
-                                <div className="mt-4 space-y-4">
-                                  {page.lines.map((line) => (
-                                    <p
-                                      key={line}
-                                      className="text-sm leading-relaxed text-zinc-700"
-                                    >
-                                      {line}
-                                    </p>
-                                  ))}
-                                </div>
-
-                                <div className="mt-8 flex items-center gap-3 text-xs font-semibold text-zinc-500">
-                                  <span className="inline-flex h-2 w-2 rounded-full bg-pink-300" />
-                                  <span>Cada palabra es un latido compartido</span>
-                                </div>
-                              </div>
-                              <div className="absolute -left-3 top-8 h-40 w-6 rounded-tl-2xl rounded-bl-2xl bg-white/30 shadow-inner" />
+                            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 via-black/15 to-transparent px-4 py-4 sm:px-5">
+                              <p className="text-sm font-semibold tracking-wide text-white sm:text-base">
+                                {page.title}
+                              </p>
                             </div>
-                          </>
-                        );
-                      })()}
+                          </div>
+                        </div>
+                      </article>
+
+                      <article className="relative overflow-hidden rounded-[26px] border border-white/50 bg-white/72 shadow-[0_16px_50px_rgba(15,23,42,0.06)] backdrop-blur">
+                        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.9),rgba(255,247,251,0.74),rgba(253,242,248,0.55))]" />
+
+                        <div className="relative flex h-full flex-col p-5 sm:p-6 lg:p-8">
+                          <div>
+                            <span className="inline-flex rounded-full bg-pink-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-pink-500">
+                              Mensaje especial
+                            </span>
+
+                            <h3 className="mt-4 text-xl font-semibold tracking-tight text-zinc-900 sm:text-2xl">
+                              Palabras para ti
+                            </h3>
+
+                            <div className="mt-5 space-y-4 sm:space-y-5">
+                              {page.lines.map((line) => (
+                                <p
+                                  key={line}
+                                  className="text-sm leading-7 text-zinc-700 sm:text-[15px] sm:leading-8"
+                                >
+                                  {line}
+                                </p>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="mt-8 border-t border-pink-100/80 pt-5">
+                            <div className="flex items-center gap-3 text-xs font-semibold tracking-wide text-zinc-500">
+                              <span className="inline-flex h-2.5 w-2.5 rounded-full bg-pink-300" />
+                              <span>Cada palabra es un latido compartido</span>
+                            </div>
+                          </div>
+                        </div>
+                      </article>
                     </motion.div>
                   </AnimatePresence>
                 </div>
-              </div>
-            </motion.div>
+              </motion.div>
+            </div>
           </motion.div>
-        ) : null}
+        )}
       </AnimatePresence>
     </div>
   );
